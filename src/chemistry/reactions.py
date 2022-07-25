@@ -1,6 +1,4 @@
-"""
-Contains code for managing the reactions.
-"""
+"""Contains code for managing the reactions."""
 
 import json
 import random
@@ -21,23 +19,20 @@ class Reaction:
         :reaction: Contains the full chemical reaction of the reactants side.
         :reactants: Contains the reactants present in the chemical reaction.
     """
+
     def __init__(self, not_parsed_reaction: List[str]):
         self.reaction = not_parsed_reaction[0]
         self.reactants = [*not_parsed_reaction[1:]]
 
     def html_reaction(self) -> str:
-        """
-        Converts the text formatting to contain subscript in html.
-        """
+        """Converts the text formatting to contain subscript in html."""
         html_reaction = self.reaction
         for digit in string.digits:
             html_reaction = html_reaction.replace(digit, f"<sub>{digit}</sub>")
         return html_reaction
 
     def options(self) -> Dict[str, List]:
-        """
-        Generate suitable options for the reactants to choose for.
-        """
+        """Generate suitable options for the reactants to choose for."""
         pass
 
 
