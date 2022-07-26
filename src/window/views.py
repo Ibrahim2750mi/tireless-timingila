@@ -58,6 +58,7 @@ class WaitingScreen(arcade.View):
 
     :param main_window: Main window in which the view is shown.
     """
+
     def __init__(self, main_window: arcade.Window):
         super().__init__(main_window)
 
@@ -113,6 +114,7 @@ class Game(arcade.View):
 
     :param main_window: Main window in which the view is shown.
     """
+
     def __init__(self, main_window: arcade.Window):
         super().__init__(main_window)
         self.main_window = main_window
