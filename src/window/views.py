@@ -43,7 +43,6 @@ class Menu(arcade.View):
 
     def on_draw(self) -> None:
         """Render the screen."""
-
         self.clear()
 
         self.manager.draw()
