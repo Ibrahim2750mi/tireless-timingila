@@ -14,15 +14,17 @@ class Reaction:
     Reaction class to easily manage the reactions. Manipulates with how the reaction is presented.
 
     :param not_parsed_reaction: It is a list of the reactants and the reaction obtained from reactions.json.
+    :param product: It is the product formed by the reactants during the reaction.
 
     Attributes:
         :reaction: Contains the full chemical reaction of the reactants side.
         :reactants: Contains the reactants present in the chemical reaction.
     """
 
-    def __init__(self, not_parsed_reaction: List[str]):
+    def __init__(self, not_parsed_reaction: List[str], product: str):
         self.reaction = not_parsed_reaction[0]
         self.reactants = [*not_parsed_reaction[1:]]
+        self.product = product
 
     def html_reaction(self) -> str:
         """Converts the text formatting to contain subscript in html."""
