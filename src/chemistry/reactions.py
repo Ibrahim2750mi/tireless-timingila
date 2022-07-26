@@ -55,7 +55,7 @@ def get_reaction(exclude: List[List[str]] = None) -> Reaction:
 
     selected_react_type = random.choice(tuple(reactions.keys()))
     selected_react = random.choice(reactions[selected_react_type])
-    return Reaction(selected_react)
+    return Reaction(selected_react, selected_react_type)
 
 
 if __name__ == '__main__':
