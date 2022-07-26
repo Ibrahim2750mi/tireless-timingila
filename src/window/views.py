@@ -1,7 +1,8 @@
-import arcade
-import arcade.gui
 import webbrowser
 from random import randint
+
+import arcade
+import arcade.gui
 
 
 class Menu(arcade.View):
