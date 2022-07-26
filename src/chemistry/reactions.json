@@ -1,5 +1,5 @@
 {
-  "salt": [
+  "salt and water": [
     [
       "HCl + NaOH",
       "H",
@@ -22,7 +22,7 @@
       "O2"
     ]
   ],
-  "ore extraction": [
+  "extraction of elements from theirs ores or reaction intermediates": [
     [
       "FeO + CO",
       "Fe",
