@@ -1,0 +1,34 @@
+{
+  "salt": [
+    [
+      "HCl + NaOH",
+      "H",
+      "Cl",
+      "Na",
+      "OH"
+    ],
+    [
+      "H2SO4 + KOH",
+      "H2",
+      "SO4",
+      "K",
+      "OH"
+    ]
+  ],
+  "ore extraction": [
+    [
+      "FeO + CO",
+      "Fe",
+      "O",
+      "C",
+      "O"
+    ],
+    [
+      "H2S + SO2",
+      "H2",
+      "S",
+      "S",
+      "O2"
+    ]
+  ]
+}
