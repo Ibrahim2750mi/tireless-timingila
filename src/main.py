@@ -1,7 +1,7 @@
 import arcade
 
-from config import (SCREEN_HEIGHT, SCREEN_TITLE, SCREEN_WIDTH)
-from window import Window, Menu
+from config import SCREEN_HEIGHT, SCREEN_TITLE, SCREEN_WIDTH
+from window import Menu, Window
 
 
 if __name__ == '__main__':
