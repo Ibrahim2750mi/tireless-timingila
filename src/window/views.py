@@ -1,5 +1,7 @@
 import arcade
 import arcade.gui
+import webbrowser
+from random import randint
 
 
 class Menu(arcade.View):
@@ -26,10 +28,13 @@ class Menu(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        play_button = arcade.gui.UIFlatButton(text="PLAY", width=300)
+        play_button = arcade.gui.UIFlatButton(text="PLAY", width=200)
         play_button.on_click = self._on_click_play_button
+        dummy_play_button = arcade.gui.UIFlatButton(text="PLAY!", width=200)
+        dummy_play_button.on_click = self._on_click_dummy_play_button
 
         self.v_box.add(play_button)
+        self.v_box.add(dummy_play_button)
 
         self.manager.add(
             arcade.gui.UIAnchorWidget(
@@ -47,6 +52,20 @@ class Menu(arcade.View):
         self.clear()
 
         self.manager.draw()
+
+    def _on_click_dummy_play_button(_self, _: arcade.gui.UIOnClickEvent) -> None:
+        """
+        Do one of three things when the dummy play button is pressed.
+
+        [0] Open a URL using the `webbrowser` module. (The same module used by `import antigravity`)
+        [1] Close the window and exit python.
+        [2] Do both.
+        """
+        if (picked := randint(0, 2)) != 1:
+            webbrowser.open_new("https://youtu.be/fujCdB93fpw")
+        if picked:
+            self.main_window.close()
+            raise SystemExit
 
     def _on_click_play_button(self, _: arcade.gui.UIOnClickEvent) -> None:
         waiting_screen = WaitingScreen(self.main_window)
