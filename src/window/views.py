@@ -53,7 +53,7 @@ class Menu(arcade.View):
 
         self.manager.draw()
 
-    def _on_click_dummy_play_button(_self, _: arcade.gui.UIOnClickEvent) -> None:
+    def _on_click_dummy_play_button(self, _: arcade.gui.UIOnClickEvent) -> None:
         """
         Do one of three things when the dummy play button is pressed.
 
