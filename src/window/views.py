@@ -31,7 +31,7 @@ class Menu(arcade.View):
 
         play_button = arcade.gui.UIFlatButton(text="PLAY", width=200)
         play_button.on_click = self._on_click_play_button
-        dummy_play_button = arcade.gui.UIFlatButton(text="PLAY!", width=200)
+        dummy_play_button = arcade.gui.UIFlatButton(text="VIP PLAY", width=200)
         dummy_play_button.on_click = self._on_click_dummy_play_button
 
         self.v_box.add(play_button)
