@@ -48,12 +48,12 @@ class Menu(arcade.View):
         )
 
     def on_draw(self) -> None:
-        """Render the screen."""
+        """Called when this view should draw."""
         self.clear()
 
         self.manager.draw()
 
-    def _on_click_dummy_play_button(_self, _: arcade.gui.UIOnClickEvent) -> None:
+    def _on_click_dummy_play_button(self, _: arcade.gui.UIOnClickEvent) -> None:
         """
         Do one of three things when the dummy play button is pressed.
 
@@ -75,9 +75,9 @@ class Menu(arcade.View):
 
 class WaitingScreen(arcade.View):
     """
-    Waiting screen view.
+    Waiting screen view. Here the player is chooses their name and joins a game.
 
-    :param main_window: Main window in which the view is shown.
+    :param main_window: Main window in which it showed.
     """
 
     def __init__(self, main_window: arcade.Window):
@@ -91,11 +91,11 @@ class WaitingScreen(arcade.View):
         self.name_input_box = None
 
     def on_show_view(self) -> None:
-        """Called when the current is switched to this view."""
+        """Called once when the view is shown."""
         self.setup()
 
     def setup(self) -> None:
-        """Set up the view."""
+        """Set up the game variables. Call to re-start the game."""
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
@@ -117,7 +117,7 @@ class WaitingScreen(arcade.View):
         )
 
     def on_draw(self) -> None:
-        """Render the view."""
+        """Called when this view should draw."""
         self.clear()
 
         self.manager.draw()
@@ -131,9 +131,9 @@ class WaitingScreen(arcade.View):
 
 class Game(arcade.View):
     """
-    Game view.
+    Main game logic goes here.
 
-    :param main_window: Main window in which the view is shown.
+    :param main_window: Main window in which it showed.
     """
 
     def __init__(self, main_window: arcade.Window):
@@ -145,9 +145,9 @@ class Game(arcade.View):
         self.setup()
 
     def setup(self):
-        """Set up the view."""
+        """Set up the game variables. Call to re-start the game."""
         pass
 
     def on_draw(self):
-        """Render the view."""
+        """Called when this view should draw."""
         self.clear()
