@@ -2,9 +2,7 @@ import arcade
 
 
 class Window(arcade.Window):
-    """
-    Main application class.
-    """
+    """Main application class."""
 
     def __init__(self, width, height, title):
         super().__init__(width, height, title)

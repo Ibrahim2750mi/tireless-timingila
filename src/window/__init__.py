@@ -1,5 +1,5 @@
-from window.window import Window
 from window.views import Menu
+from window.window import Window
 
 __all__ = [
     "Window",

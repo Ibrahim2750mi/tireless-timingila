@@ -6,7 +6,7 @@ class Menu(arcade.View):
     """
     Menu view.
 
-    :param main_window: Main window in which it showed.
+    :param main_window: Main window in which the view is shown.
     """
 
     def __init__(self, main_window: arcade.Window):
@@ -43,7 +43,6 @@ class Menu(arcade.View):
 
     def on_draw(self) -> None:
         """Render the screen."""
-
         self.clear()
 
         self.manager.draw()
@@ -54,7 +53,13 @@ class Menu(arcade.View):
 
 
 class WaitingScreen(arcade.View):
-    def __init__(self, main_window):
+    """
+    Waiting screen view.
+
+    :param main_window: Main window in which the view is shown.
+    """
+
+    def __init__(self, main_window: arcade.Window):
         super().__init__(main_window)
 
         self.main_window = main_window
@@ -65,10 +70,11 @@ class WaitingScreen(arcade.View):
         self.name_input_box = None
 
     def on_show_view(self) -> None:
+        """Called when the current is switched to this view."""
         self.setup()
 
     def setup(self) -> None:
-
+        """Set up the view."""
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
@@ -90,7 +96,7 @@ class WaitingScreen(arcade.View):
         )
 
     def on_draw(self) -> None:
-
+        """Render the view."""
         self.clear()
 
         self.manager.draw()
@@ -103,16 +109,24 @@ class WaitingScreen(arcade.View):
 
 
 class Game(arcade.View):
-    def __init__(self, main_window):
+    """
+    Game view.
+
+    :param main_window: Main window in which the view is shown.
+    """
+
+    def __init__(self, main_window: arcade.Window):
         super().__init__(main_window)
         self.main_window = main_window
 
     def on_show_view(self):
+        """Called when the current is switched to this view."""
         self.setup()
 
     def setup(self):
+        """Set up the view."""
         pass
 
     def on_draw(self):
-
+        """Render the view."""
         self.clear()
