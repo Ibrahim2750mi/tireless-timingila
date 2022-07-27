@@ -66,6 +66,7 @@ class Menu(arcade.View):
             webbrowser.open_new("https://youtu.be/fujCdB93fpw")
         if picked:
             self.main_window.close()
+            arcade.exit()
             raise SystemExit
 
     def _on_click_play_button(self, _: arcade.gui.UIOnClickEvent) -> None:
