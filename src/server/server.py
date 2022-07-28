@@ -172,10 +172,7 @@ async def create_private_room(websocket: websockets.legacy.server.WebSocketServe
 
 async def join_private_game(websocket: websockets.legacy.server.WebSocketServerProtocol,
                             client_id: str, room_key: str):
-    """
-    Handle a connection from the other player ( except the one who create room )
-    Join room by 'room_key'
-    """
+    """Handle a connection from the other player ( except the one who create room )"""
     current_room = None
     try:
         current_room = private_rooms[room_key]
@@ -215,8 +212,10 @@ async def join_private_game(websocket: websockets.legacy.server.WebSocketServerP
 
 
 async def create_public_room(websocket: websockets.legacy.server.WebSocketServerProtocol, client_id):
-    """
+    """Create public room
+
     The function will be called when :
+
         1. when 'ROOMS' is empty
         2. when the last room from 'ROOMS' is full
     """
