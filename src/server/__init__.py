@@ -6,5 +6,6 @@ __all__ = [
     "handler",
     "Room",
     "encode_json",
-    "decode_json"
+    "decode_json",
+    "client"
 ]
