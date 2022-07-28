@@ -18,12 +18,12 @@ public_rooms_keys: List[str] = []
 
 
 def encode_json(message) -> str:
-    """helper function ( dict -> str of json )"""
+    """Helper function ( dict -> str of json )"""
     return json.dumps(message, ensure_ascii=False)
 
 
 def decode_json(message) -> dict:
-    """helper function ( str of json -> dict )"""
+    """Helper function ( str of json -> dict )"""
     return json.loads(message)
 
 
@@ -38,9 +38,11 @@ class Client:
         self.private: bool = False
 
     def add_public_room_key(self, room_key: str) -> None:
+        """Update room key for public room."""
         self.room_key: str = room_key
 
     def add_private_room_key(self, room_key: str) -> None:
+        """Update room key for private room."""
         self.room_key: str = room_key
         self.private = True
 
@@ -56,7 +58,7 @@ class Room:
         self.private: bool = False
 
     def get_room_size(self) -> int:
-        """return current room size"""
+        """Return current room size"""
         return len(self.clients)
 
     def add_player(self, client_id: str) -> None:
@@ -94,7 +96,6 @@ async def waiting(websocket: websockets.legacy.server.WebSocketServerProtocol):
 async def play_private(websocket: websockets.legacy.server.WebSocketServerProtocol,
                        client_id: str, current_room: Room):
     """Receive and process moves from a player.( Private Game )"""
-
     print("Private Game start !")
     try:
         async for message in websocket:
@@ -121,7 +122,6 @@ async def play_private(websocket: websockets.legacy.server.WebSocketServerProtoc
 
 async def play_public(websocket: websockets.legacy.server.WebSocketServerProtocol, client_id: str, current_room: Room):
     """Receive and process moves from a player.( Public Game )"""
-
     print("Public Game start !")
 
     try:
@@ -148,7 +148,6 @@ async def play_public(websocket: websockets.legacy.server.WebSocketServerProtoco
 
 async def create_private_room(websocket: websockets.legacy.server.WebSocketServerProtocol, client_id: str):
     """Handle a connection from the room owner ( the player that create private room )"""
-
     room_key = secrets.token_urlsafe(6)
     private_rooms[room_key] = Room(room_key)
     private_rooms[room_key].add_player(client_id)
@@ -177,7 +176,6 @@ async def join_private_game(websocket: websockets.legacy.server.WebSocketServerP
     Handle a connection from the other player ( except the one who create room )
     Join room by 'room_key'
     """
-
     current_room = None
     try:
         current_room = private_rooms[room_key]
@@ -222,7 +220,6 @@ async def create_public_room(websocket: websockets.legacy.server.WebSocketServer
         1. when 'ROOMS' is empty
         2. when the last room from 'ROOMS' is full
     """
-
     print("create public game\n")
 
     # create new room
@@ -289,7 +286,6 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
 
 async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
     """Handle a connection and dispatch it according to who is connecting."""
-
     try:
         print("player online !")
         # add current player to global online client dictionary

@@ -7,16 +7,17 @@ import websockets
 
 
 def encode_json(message) -> str:
-    """helper function ( dict -> str of json )"""
+    """Helper function ( dict -> str of json )"""
     return json.dumps(message, ensure_ascii=False)
 
 
 def decode_json(message) -> dict:
-    """helper function ( str of json -> dict )"""
+    """Helper function ( str of json -> dict )"""
     return json.loads(message)
 
 
 async def client():
+    """Connect to server side"""
     uri = "ws://localhost:8001"
     async with websockets.connect(uri) as websocket:
 
