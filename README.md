@@ -25,6 +25,6 @@ Chemystery is a turn-based co-op game where chemists must team up to brew a conc
 ## Our Team
 
 * [Ibrahim2750mi](https://github.com/Ibrahim2750mi)
-* [CrowTheBird](https://github.com/thatbirdguythatuknownot)
+* [Crowthebird](https://github.com/thatbirdguythatuknownot)
 * [Liu Zhe Yu](https://github.com/jason810496)
 * [Rusty](https://github.com/rustyxlol)
