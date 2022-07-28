@@ -1,29 +1,21 @@
 #!/usr/bin/env python
 
 import asyncio
-import json
 
 import websockets
+import websockets.exceptions
+
+from server import encode_json, decode_json
 
 
-def encode_json(message) -> str:
-    """Helper function ( dict -> str of json )"""
-    return json.dumps(message, ensure_ascii=False)
-
-
-def decode_json(message) -> dict:
-    """Helper function ( str of json -> dict )"""
-    return json.loads(message)
-
-
-async def client():
+async def client(oper: int = None):
     """Connect to server side"""
     uri = "ws://localhost:8001"
     async with websockets.connect(uri) as websocket:
 
         try:
-            oper = int(input("input oper : "))
-            event = {}
+            if oper is None:
+                oper = int(input("input oper : "))
             if oper == 1:
                 # create private room
                 event = {
@@ -40,7 +32,6 @@ async def client():
                 }
                 await websocket.send(encode_json(event))
             else:
-                # join public room
                 event = {
                     "type": "join",
                 }
@@ -63,7 +54,6 @@ async def client():
 
                     await websocket.send(encode_json(oper))
                 elif event["type"] == "player_disconnect":
-                    # player disconnect
                     print(event)
                     # await websocket.send( encode_json(event) )
 
@@ -71,5 +61,6 @@ async def client():
             print("server close connect")
         finally:
             print("connect close")
+
 
 asyncio.run(client())

@@ -1,8 +1,10 @@
-from server.server import Client, Room, handler, start_server
+from server.server import Client, Room, handler, encode_json, decode_json
+from server.client import client
 
 __all__ = [
     "Client",
     "handler",
     "Room",
-    "start_server"
+    "encode_json",
+    "decode_json"
 ]

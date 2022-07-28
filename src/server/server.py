@@ -173,18 +173,15 @@ async def create_private_room(websocket: websockets.legacy.server.WebSocketServe
 async def join_private_game(websocket: websockets.legacy.server.WebSocketServerProtocol,
                             client_id: str, room_key: str):
     """Handle a connection from the other player ( except the one who create room )"""
-    current_room = None
     try:
         current_room = private_rooms[room_key]
     except KeyError:
         await error(websocket, "Game not found.")
         return
 
-    # add current player to current room
     current_room.add_player(client_id)
     online_clients[client_id].add_private_room_key(room_key)
 
-    # broadcast new player join message
     event = {
         "type": "player_join",
         "player": client_id,
@@ -245,7 +242,7 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
     """Handle a connection that player joined public game."""
     print("join public game\n")
 
-    if((len(public_rooms_keys) == 0) or (public_rooms[public_rooms_keys[-1]].get_room_size() == ROOM_SIZE)):
+    if (len(public_rooms_keys) == 0) or (public_rooms[public_rooms_keys[-1]].get_room_size() == ROOM_SIZE):
         # the situation that player become room creater
         await create_public_room(websocket, client_id)
 
