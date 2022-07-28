@@ -1,3 +1,7 @@
+import pathlib
+
+PATH = str(pathlib.Path().cwd()) + "/../"
+
 # interface
 
 SCREEN_WIDTH = 800

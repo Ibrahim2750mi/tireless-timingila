@@ -282,6 +282,7 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
 
 async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
     """Handle a connection and dispatch it according to who is connecting."""
+    print("called")
     try:
         print("player online !")
         # add current player to global online client dictionary
@@ -334,4 +335,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    print("connected!")
     asyncio.run(main())
