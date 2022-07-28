@@ -5,7 +5,7 @@ import asyncio
 import websockets
 import websockets.exceptions
 
-from server import encode_json, decode_json
+from server import decode_json, encode_json
 
 
 async def client(oper: int = None):
