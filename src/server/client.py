@@ -6,32 +6,32 @@ import json
 import websockets
 
 
-# helper function ( dict -> str of json )
 def encode_json(message) -> str:
+    """helper function ( dict -> str of json )"""
     return json.dumps(message, ensure_ascii=False)
 
 
-# helper function ( str of json -> dict )
 def decode_json(message) -> dict:
+    """helper function ( str of json -> dict )"""
     return json.loads(message)
 
 
 async def client():
     uri = "ws://localhost:8001"
     async with websockets.connect(uri) as websocket:
-        # Close the connection when receiving SIGTERM.
 
         try:
             oper = int(input("input oper : "))
             event = {}
             if oper == 1:
+                # create private room
                 event = {
                     "type": "create",
                 }
 
                 await websocket.send(encode_json(event))
             elif oper == 2:
-
+                # join private room
                 key = str(input("input room key: "))
                 event = {
                     "type": "join",
@@ -46,8 +46,8 @@ async def client():
                 await websocket.send(encode_json(event))
 
             async for message in websocket:
-                print("mes: ", message)
 
+                print("mes: ", message)
                 event = decode_json(message)
 
                 if event["type"] == "waiting":
