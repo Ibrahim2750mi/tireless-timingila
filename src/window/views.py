@@ -6,8 +6,9 @@ from random import randint
 import arcade
 import arcade.gui
 import websockets
+import websockets.exceptions
 
-from config import PATH, SCREEN_WIDTH, SCREEN_HEIGHT
+from config import PATH, SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 def encode_json(message) -> str:
@@ -18,6 +19,7 @@ def encode_json(message) -> str:
 def decode_json(message) -> dict:
     """Helper function ( str of json -> dict )"""
     return json.loads(message)
+
 
 class Menu(arcade.View):
     """
@@ -45,7 +47,6 @@ class Menu(arcade.View):
 
     def setup(self) -> None:
         """Set up the game variables. Call to re-start the game."""
-
         self.v_box = arcade.gui.UIBoxLayout(space_between=30)
         self.v_box_heading = arcade.gui.UIBoxLayout()
         self.manager = arcade.gui.UIManager()
@@ -119,6 +120,13 @@ class WaitingScreen(arcade.View):
 
         self.name_input_box = None
 
+        self.client_id = None
+        self.room_key = None
+
+        self.all_player_ids = None
+
+        self.lambda_client = None
+
     def on_show_view(self) -> None:
         """Called when the current is switched to this view."""
         self.setup()
@@ -152,22 +160,49 @@ class WaitingScreen(arcade.View):
         self.manager.draw()
 
     def _on_click_find_players_button(self, _: arcade.gui.UIOnClickEvent):
-        # Implement websockets here.
-        print(self.name_input_box.text)
-        asyncio.run(self.client())
+        join_event = {
+            "type": "join",
+            "player": self.client_id,
+            "auto_disconnect": True,
+            "player_name": self.name_input_box.text,
+        }
 
-    @staticmethod
-    async def client():
-        async with websockets.connect("ws://localhost:8001") as ws:
-            event = {
-                "type": "join",
-            }
-            await ws.send(encode_json(event))
-            await asyncio.sleep(1)
-            async for message in ws:
-                print("message: ", message)
-                event = decode_json(message)
-                print(event)
+        asyncio.run(self.client(join_event))
+        room_status_event = {
+            "type": "room_status",
+            "player": self.client_id,
+            "auto_disconnect": True,
+            "room": self.room_key
+        }
+
+        self.lambda_client = lambda _: asyncio.run(self.client(room_status_event))
+
+        arcade.schedule(self.lambda_client, 3)
+
+    async def client(self, event):
+        """Client side for the waiting screen."""
+        async with websockets.connect("ws://localhost:8002") as ws:
+            try:
+                await ws.send(encode_json(event))
+                msg = await ws.recv()
+                print(msg)
+                event = decode_json(msg)
+                self.client_id = event["player"] if event.get("player", None) else self.client_id
+                self.room_key = event["room"] if event.get("room", None) else self.room_key
+
+                num_players = int(event['length']) if event.get("length", None) else 0
+                client_data = event['client_data'] if event.get("client_data", None) else 0
+
+                if num_players == 4:
+                    self.client_data = client_data
+                    arcade.unschedule(self.lambda_client)
+                    game = Game(self.main_window, self.client_data, self.name_input_box.text, self.client_id,
+                                self.room_key)
+                    self.main_window.show_view(game)
+                    return
+
+            except websockets.exceptions.ConnectionClosedOK as e:
+                print(e)
 
 
 class Game(arcade.View):
@@ -177,7 +212,7 @@ class Game(arcade.View):
     :param main_window: Main window in which the view is shown.
     """
 
-    def __init__(self, main_window: arcade.Window):
+    def __init__(self, main_window: arcade.Window, player_ids, player_name, player_id, room_id):
         super().__init__(main_window)
         self.main_window = main_window
 
