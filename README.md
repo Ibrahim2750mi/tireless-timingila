@@ -1,12 +1,14 @@
 <!-- PROJECT LOGO -->
-
-<h2 align="center"><img src="https://i.imgur.com/vuy08Pw.png" width="300px">
-</h2>
-  <h2 align="center">Chemystery</h2>
+<br />
+<p align="center">
+  <a href="https://github.com/Ibrahim2750mi/tireless-timingila" target="_blank"> <img src="https://i.imgur.com/vuy08Pw.png" alt="Tic-tac-toe" width="300"/> </a>
+  </a>
+  <h3 align="center">Chemystery</h3>
 
   <p align="center">
     by Tireless Timingila
-    <br/>
+    <br />
+    <br />
     <a href="https://github.com/Ibrahim2750mi/tireless-timingila">View Demo</a>
     ·
     <a href="https://github.com/Ibrahim2750mi/tireless-timingila/issues">Report Bug</a>
