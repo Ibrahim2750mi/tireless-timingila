@@ -1,12 +1,14 @@
 [tool.poetry]
-name = "Name"
+name = "Tireless Timingila"
 version = "0.1.0"
 description = ""
-authors = ["Author 1 <email@mail.com>"]
+authors = ["Rusty"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "3.10.*"
+arcade = "^2.6.15"
+websockets = "^10.3"
 
 [tool.poetry.dev-dependencies]
 # Base tools
