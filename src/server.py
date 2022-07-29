@@ -269,15 +269,14 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
             if len(current_room) == ROOM_SIZE:
                 # current player is the fourth player that join the game.
                 event = {
-                            "type": "reply_room_status",
-                            "length": len(room),
-                            "client_data": tuple(room.clients.keys()),
-                    }
+                    "type": "reply_room_status",
+                    "length": len(current_room),
+                    "client_data": tuple(current_room.clients.keys()),
+                }
                 await websockets.send(encode_json(event))
 
-
                 # websockets.broadcast(current_room.socket_list, encode_json(event))
-                
+
                 # brocadcast start event to all players in the room
                 # ( break waiting loop for other players )
 
