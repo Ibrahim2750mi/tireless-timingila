@@ -5,6 +5,7 @@ import random
 import string
 from typing import Dict, List
 
+
 class Reaction:
     """
     Reaction class to easily manage the reactions. Manipulates with how the reaction is presented.
