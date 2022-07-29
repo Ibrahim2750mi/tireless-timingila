@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Dummy client."""
+
 import asyncio
 
 import websockets

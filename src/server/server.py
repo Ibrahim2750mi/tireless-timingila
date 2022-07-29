@@ -8,13 +8,14 @@ from typing import Dict, List
 import websockets
 import websockets.legacy.server
 
-from config import ROOM_SIZE
+ROOM_SIZE = 4
 
 # Global varibales
 online_clients: Dict[str, "Client"] = {}
 private_rooms: Dict[str, "Room"] = {}
 public_rooms: Dict[str, "Room"] = {}
 public_rooms_keys: List[str] = []
+planned_disconnection: List[str] = []
 
 
 def encode_json(message) -> str:
@@ -36,6 +37,7 @@ class Client:
         self.client_id: str = client_id
         self.room_key: str = room_key
         self.private: bool = False
+        self.name: str = None
 
     def add_public_room_key(self, room_key: str) -> None:
         """Update room key for public room."""
@@ -57,8 +59,7 @@ class Room:
         self.game_status: Dict = {"winner": None}
         self.private: bool = False
 
-    def get_room_size(self) -> int:
-        """Return current room size"""
+    def __len__(self):
         return len(self.clients)
 
     def add_player(self, client_id: str) -> None:
@@ -84,13 +85,12 @@ async def error(websocket: websockets.legacy.server.WebSocketServerProtocol, mes
 async def waiting(websocket: websockets.legacy.server.WebSocketServerProtocol):
     """Handle player waiting untill room size == 4"""
     print("enter waiting loop")
-    async for message in websocket:
-        event = decode_json(message)
+    message = await websocket.recv()
+    event = decode_json(message)
 
-        print("wait: ", event)
-        if event["type"] == "start":
-            print(" break waiting loop ! ")
-            break
+    print("wait: ", event)
+    if event["type"] == "start":
+        print(" break waiting loop ! ")
 
 
 async def play_private(websocket: websockets.legacy.server.WebSocketServerProtocol,
@@ -103,15 +103,13 @@ async def play_private(websocket: websockets.legacy.server.WebSocketServerProtoc
             print(event)
 
             # Game logic
-            print(" current room size:", current_room.get_room_size())
-            await websocket.send(encode_json({"type": "debug", "room_size": current_room.get_room_size(), }))
+            print(" current room size:", len(current_room))
+            await websocket.send(encode_json({"type": "debug", "room_size": len(current_room), }))
 
-            if event["type"] == "player_disconnect" and current_room.get_room_size() == 1:
-
+            if event["type"] == "player_disconnect" and len(current_room) == 1:
                 await error(websocket, encode_json("All the other player left the game !"))
                 break
             if current_room.game_status["winner"]:
-
                 print("The winner is ", current_room.game_status["winner"])
                 break
     finally:
@@ -137,7 +135,6 @@ async def play_public(websocket: websockets.legacy.server.WebSocketServerProtoco
                 await error(websocket, "The public game end becase player disconnect")
                 return
             if current_room.game_status["winner"]:
-
                 print("The winner is ", current_room.game_status["winner"])
                 return
     finally:
@@ -159,6 +156,7 @@ async def create_private_room(websocket: websockets.legacy.server.WebSocketServe
         # where they'll be used for building "room_key" and "watch" links.
         event = {
             "type": "init",
+            "player": client_id,
             "room_key": room_key,
         }
         await websocket.send(encode_json(event))
@@ -179,17 +177,20 @@ async def join_private_game(websocket: websockets.legacy.server.WebSocketServerP
         await error(websocket, "Game not found.")
         return
 
+    # add current player to current room
     current_room.add_player(client_id)
     online_clients[client_id].add_private_room_key(room_key)
 
+    # broadcast new player join message
     event = {
         "type": "player_join",
         "player": client_id,
+        "room": room_key,
     }
     websockets.broadcast(current_room.socket_list, encode_json(event))
 
     try:
-        if current_room.get_room_size() == ROOM_SIZE:
+        if len(current_room) == ROOM_SIZE:
             # current player is the fourth player that join the game.
             event = {
                 "type": "start",
@@ -229,6 +230,8 @@ async def create_public_room(websocket: websockets.legacy.server.WebSocketServer
     try:
         event = {
             "type": "init",
+            "player": client_id,
+            "room": room_key,
         }
         await websocket.send(encode_json(event))
 
@@ -242,7 +245,7 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
     """Handle a connection that player joined public game."""
     print("join public game\n")
 
-    if (len(public_rooms_keys) == 0) or (public_rooms[public_rooms_keys[-1]].get_room_size() == ROOM_SIZE):
+    if (len(public_rooms_keys) == 0) or (len(public_rooms[public_rooms_keys[-1]]) == ROOM_SIZE):
         # the situation that player become room creater
         await create_public_room(websocket, client_id)
 
@@ -258,11 +261,12 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
         event = {
             "type": "player_join",
             "player": client_id,
+            "room": last_room_key
         }
         websockets.broadcast(current_room.socket_list, encode_json(event))
 
         try:
-            if current_room.get_room_size() == ROOM_SIZE:
+            if len(current_room) == ROOM_SIZE:
                 # current player is the fourth player that join the game.
                 event = {
                     "type": "start",
@@ -282,32 +286,69 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
 
 async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
     """Handle a connection and dispatch it according to who is connecting."""
+    client_id = ""
+
     try:
         print("player online !")
         # add current player to global online client dictionary
-        client_id = secrets.token_urlsafe(6)
-        online_clients[client_id] = Client(websocket, client_id)
 
         async for message in websocket:
             event = decode_json(message)
             print("message : ", event)
 
-            if event["type"] == "join":
+            if event["player"] is None:
+                client_id = secrets.token_urlsafe(6)
+                online_clients[client_id] = Client(websocket, client_id)
+                online_clients[client_id].name = event["player_name"]
+            else:
+                client_id = event["player"]
 
-                print(" player join ")
+            if event["auto_disconnect"]:
+                planned_disconnection.append(client_id)
 
-                if "room_key" in event:
-                    # player join private room
-                    await join_private_game(websocket, client_id, event["room_key"])
-                else:
-                    # player join public room
-                    await join_public_game(websocket, client_id)
+            match event["type"]:
 
-            elif event["type"] == "create":
-                # The player create private room
-                print(" player create private room ")
-                await create_private_room(websocket, client_id)
+                case "ping":
+                    pass
+
+                case "join":
+
+                    print("player join")
+
+                    if "room_key" in event:
+                        # player join private room
+                        await join_private_game(websocket, client_id, event["room_key"])
+                    else:
+                        # player join public room
+                        await join_public_game(websocket, client_id)
+
+                case "create":
+                    # The player create private room
+                    print("player create private room")
+                    await create_private_room(websocket, client_id)
+
+                case "room_status":
+                    room = None
+                    if public_rooms.get(event["room"], None) is not None:
+                        room = public_rooms[event['room']]
+                    elif private_rooms.get(event["room"], None) is not None:
+                        room = private_rooms[event['room']]
+                    else:
+                        event = {
+                            "type": "bad request"
+                        }
+
+                    if room:
+                        event = {
+                            "type": "reply_room_status",
+                            "length": len(room),
+                            "client_data": tuple(room.clients.keys()),
+                        }
+                    await websocket.send(encode_json(event))
     finally:
+        if client_id in planned_disconnection:
+            planned_disconnection.remove(client_id)
+            return
         print("player life cycle end", client_id)
 
         if len(online_clients[client_id].room_key) > 0:
@@ -329,7 +370,7 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
 
 async def main():
     """To get the server started at the uri "ws://localhost:8001"."""
-    async with websockets.serve(handler, "", 8001):
+    async with websockets.serve(handler, "", 8002):
         await asyncio.Future()
 
 
