@@ -2,7 +2,7 @@
 name = "Tireless Timingila"
 version = "0.1.0"
 description = ""
-authors = ["Rusty"]
+authors = ["Ibrahim2750mi", "jason810496 ", "thatbirdguythatuknownot", "rustyxlol"]
 license = "MIT"
 
 [tool.poetry.dependencies]
