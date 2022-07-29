@@ -8,7 +8,7 @@ from typing import Dict, List
 import websockets
 import websockets.legacy.server
 
-ROOM_SIZE = 4
+from config import ROOM_SIZE
 
 # Global varibales
 online_clients: Dict[str, "Client"] = {}
