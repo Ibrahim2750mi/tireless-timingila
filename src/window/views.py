@@ -10,7 +10,6 @@ import nest_asyncio
 import websockets
 import websockets.exceptions
 
-from chemistry import Reaction
 from config import ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
 
 nest_asyncio.apply()
@@ -240,12 +239,17 @@ class Game(arcade.View):
         self.reaction = {}
 
         self.v_box = None
+        self.v_box_top = None
         self.h_box_top = None
         self.manager = None
 
         self.name_labels = []
+        self.current_turn = None
+        self.reaction_label = None
 
         self.round = 1
+
+        self.turn_index = 0
 
     def on_show_view(self):
         """Called when the current is switched to this view."""
@@ -257,43 +261,65 @@ class Game(arcade.View):
         }
         asyncio.run(self.client(event))
 
+        # wait until receiving reaction information from server
         sleep(0.5)
-        # wait untill receiving reaction information from server
-        print("deug : If run into 'on show view' setup fun ")
+
         self.setup()
 
     def setup(self):
         """Set up the game variables. Call to re-start the game."""
+        player_names = tuple(self.all_player_data.values())
+
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        self.h_box_top = arcade.gui.UIBoxLayout(vertical=False)
+        self.h_box_top = arcade.gui.UIBoxLayout(vertical=False, space_between=200)
         # switch font color to red just to test if it's working
-        round_label = arcade.gui.UILabel(text=f"round {self.round} of 5", text_color=FONT_COLOR_RED)
+        round_label = arcade.gui.UILabel(text=f"Round {self.round} of 5", text_color=FONT_COLOR_RED,
+                                         font_name="Dilo World")
+        self.h_box_top.add(round_label)
+        # self.h_box_top.add(reaction_label)
+
+        self.v_box_top = arcade.gui.UIBoxLayout(space_between=20)
+        print(self.reaction)
         reaction_label = arcade.gui.UILabel(
             text=f"Recipe is: {self.reaction['reaction']}",
-            width=250,
-            text_color=FONT_COLOR_RED)
+            width=300,
+            text_color=FONT_COLOR_RED,
+            font_size=20,
+            height=50,
+        )
 
-        self.h_box_top.add(round_label)
-        self.h_box_top.add(reaction_label)
+        v_box_h_box = arcade.gui.UIBoxLayout(vertical=False)
+        for option in self.reaction['options']:
+            mod_style = STYLE_WHITE
+            mod_style["font_name"] = "Arial"
+            options_button = arcade.gui.UIFlatButton(text=option, width=250/4, style=mod_style)
+            v_box_h_box.add(options_button)
 
-        self.v_box = arcade.gui.UIBoxLayout()
+        current_turn = arcade.gui.UILabel(text=f"{player_names[self.turn_index]}'s Turn",
+                                          font_name="Dilo World", text_color=FONT_COLOR_RED, width=250, height=30)
 
-        player_names = tuple(self.all_player_data.values())
+        self.v_box_top.add(reaction_label)
+        self.v_box_top.add(v_box_h_box)
+        self.v_box_top.add(current_turn)
+
+        self.v_box = arcade.gui.UIBoxLayout(space_between=20)
 
         for name in player_names:
             style = FONT_COLOR_WHITE
             if name == self.player_name:
                 style = FONT_COLOR_RED
-            label = arcade.gui.UILabel(text=name, font_name="Dilo World", text_color=style)
+            label = arcade.gui.UILabel(text=name, font_name="Dilo World", text_color=style, width=250, height=30)
+            label_border = label.with_border(width=4, color=(119, 117, 119))
             self.name_labels.append(label)
-            self.v_box.add(label)
+            self.v_box.add(label_border)
 
         self.manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="left",
                 anchor_y="top",
+                align_x=20,
                 child=self.h_box_top
             )
         )
@@ -301,15 +327,27 @@ class Game(arcade.View):
         self.manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="left",
-                anchor_y="bottom",
-                align_y=50,
+                anchor_y="center",
+                align_x=20,
                 child=self.v_box
+            )
+        )
+
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="center",
+                anchor_y="top",
+                child=self.v_box_top
             )
         )
 
     def on_draw(self):
         """Called when this view should draw."""
         self.clear()
+
+        for label in self.name_labels:
+            arcade.draw_rectangle_filled(label.x + label.width / 2, label.y + label.height / 2,
+                                         label.width, label.height, (202, 201, 202))
 
         self.manager.draw()
 
@@ -325,5 +363,6 @@ class Game(arcade.View):
                     self.reaction['reaction'] = event_recv['reaction']
                     self.reaction['reactants'] = event_recv['reactants']
                     self.reaction['products'] = event_recv["products"]
+                    self.reaction['options'] = event_recv['options']
             except Exception as e:
                 print(e)

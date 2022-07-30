@@ -8,6 +8,12 @@ from config import SRC_PATH
 
 already_sent_reactions = []
 
+with open(str(SRC_PATH / "chemistry" / "reactions.json"), "r") as f:
+    reactions_cache = json.load(f)
+
+with open(str(SRC_PATH / "chemistry" / "options.json"), "r") as f:
+    options_cache = json.load(f)
+
 
 class Reaction:
     """
@@ -33,26 +39,31 @@ class Reaction:
             html_reaction = html_reaction.replace(digit, f"<sub>{digit}</sub>")
         return html_reaction
 
-    def options(self) -> dict[str, list]:
+    def options(self, position) -> list[list[str]]:
         """Generate suitable options for the reactants to choose for."""
-        pass
+        elem = self.reactants[position]
+        option_list = options_cache[elem]
+        return random.choice(option_list)
 
     def omit(self, position: int):
-        to_omit = self.reactants[position]
-        return self.reaction.replace(to_omit, "XX")
+        """Element or Compound to omit from the reaction."""
+        omit_list = self.reactants.copy()
+        plus_index = omit_list.index(" ")
+        omit_list.remove(" ")
+        omit_list[position] = "XX"
+        omit_list.insert(plus_index, " + ")
+        return ''.join(omit_list)
 
     def json(self, omit_number) -> dict[str, str]:
+        """Returns a postable json format for server."""
         return {
             "type": "reaction",
             "reaction_original": self.reaction,
             "reaction": self.omit(omit_number),
+            "options": self.options(omit_number),
             "reactants": self.reactants,
             "products": self.product
         }
-
-
-with open(str(SRC_PATH / "chemistry" / "reactions.json"), "r") as f:
-    reactions_cache = json.load(f)
 
 
 def get_reaction() -> Reaction:
@@ -73,7 +84,8 @@ def get_reaction() -> Reaction:
 
 
 if __name__ == '__main__':
-    # with open("reactions.json", "w") as f:
-    #     json.dump(writeable, f, indent=2)
+    # subscript: ₁₂₃₄₅₆₇₈₉
+    # with open(str(SRC_PATH / "chemistry" / "reactions.json"), "w") as f:
+    #      json.dump(writeable, f, indent=2)
     r = get_reaction()
-    print(r.reaction, r.reactants, r.html_reaction())
+    print(r.reaction, r.reactants, r.html_reaction(), r.json(1))

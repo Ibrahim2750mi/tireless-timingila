@@ -375,6 +375,7 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                     else:
                         reaction = room.reaction
                     omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
+                    print(encode_json(reaction.json(omit_number)))
                     await websocket.send(encode_json(reaction.json(omit_number)))
 
     finally:
