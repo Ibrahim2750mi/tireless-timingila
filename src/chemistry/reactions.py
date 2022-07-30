@@ -62,7 +62,8 @@ class Reaction:
             "reaction": self.omit(omit_number),
             "options": self.options(omit_number),
             "reactants": self.reactants,
-            "products": self.product
+            "products": self.product,
+            "index": omit_number,
         }
 
 

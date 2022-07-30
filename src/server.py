@@ -56,7 +56,7 @@ class Room:
         self.room_key: str = room_key
         self.clients: dict[str, Client] = {}
         self.socket_list: list = []  # list of websocket object ( for brocasting )
-        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": []}
+        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": [], "turn": 0,}
         self.private: bool = False
 
         self.reaction: Reaction = None
@@ -343,7 +343,6 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                     await create_private_room(websocket, client_id)
 
                 case "room_status":
-                    print("called reaction 2")
                     room = None
                     if public_rooms.get(event["room"], None) is not None:
                         room = public_rooms[event['room']]
@@ -375,9 +374,28 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                     else:
                         reaction = room.reaction
                     omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
-                    print(encode_json(reaction.json(omit_number)))
                     await websocket.send(encode_json(reaction.json(omit_number)))
+                case "turn_status_pub":
+                    room = public_rooms[event['room']]
 
+                    event = {
+                        "type": "turn_reply",
+                        "turn": room.game_status['turn'],
+                        "reaction": room.reaction.reaction,
+                    }
+                    await websocket.send(encode_json(event))
+                case "select_option_pub":
+                    room = public_rooms[event['room']]
+                    room.reaction.reaction = event["reaction"]
+                    room.game_status['turn'] = event['turn']
+                    if room.game_status['turn'] == ROOM_SIZE - 1:
+                        room.reaction = None
+                        room.game_status['turn'] = 0
+                    event = {
+                        "type": "success"
+                    }
+
+                    await websocket.send(encode_json(event))
     finally:
         if client_id in planned_disconnection:
             planned_disconnection.remove(client_id)
