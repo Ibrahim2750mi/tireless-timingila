@@ -7,8 +7,8 @@ import secrets
 import websockets
 import websockets.legacy.server
 
-from config import ROOM_SIZE
 from chemistry import Reaction, get_reaction
+from config import ROOM_SIZE
 
 # Global varibales
 online_clients: dict[str, "Client"] = {}
@@ -56,7 +56,7 @@ class Room:
         self.room_key: str = room_key
         self.clients: dict[str, Client] = {}
         self.socket_list: list = []  # list of websocket object ( for brocasting )
-        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": [], "turn": 0,}
+        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": [], "turn": 0}
         self.private: bool = False
 
         self.reaction: Reaction = None

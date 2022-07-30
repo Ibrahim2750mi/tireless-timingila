@@ -10,7 +10,9 @@ import nest_asyncio
 import websockets
 import websockets.exceptions
 
-from config import ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH, WAITING_SECOND
+from config import (
+    ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH, WAITING_SECOND
+)
 
 nest_asyncio.apply()
 
@@ -309,7 +311,7 @@ class Game(arcade.View):
             v_box_h_box.add(options_button)
 
         self.current_turn = arcade.gui.UILabel(text=f"{player_names[self.turn_index]}'s Turn",
-                                          font_name="Dilo World", text_color=FONT_COLOR_RED, width=250, height=30)
+                                               font_name="Dilo World", text_color=FONT_COLOR_RED, width=250, height=30)
 
         self.current_label = arcade.gui.UILabel(
             text=f"Current reaction is: {self.reaction['current_reaction']}",
