@@ -135,7 +135,6 @@ class WaitingScreen(arcade.View):
 
     def setup(self) -> None:
         """Set up the game variables. Call to re-start the game."""
-
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
