@@ -209,7 +209,7 @@ class WaitingScreen(arcade.View):
                 client_data = event['client_data'] if event.get("client_data", None) else 0
 
                 self.waiting_label.text = f"Waiting for players" \
-                                          f"{(self.num_dots % 3 if self.num_dots % 3 else 3) * '.'} {num_players}/4 "
+                                          f"{(self.num_dots % 3 or 3) * '.'} {num_players}/4 "
 
                 if num_players == 4:
                     self.client_data = client_data
