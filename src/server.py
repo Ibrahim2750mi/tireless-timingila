@@ -3,7 +3,6 @@
 import asyncio
 import json
 import secrets
-from typing import Dict, List
 
 import websockets
 import websockets.legacy.server
@@ -11,11 +10,11 @@ import websockets.legacy.server
 from config import ROOM_SIZE
 
 # Global varibales
-online_clients: Dict[str, "Client"] = {}
-private_rooms: Dict[str, "Room"] = {}
-public_rooms: Dict[str, "Room"] = {}
-public_rooms_keys: List[str] = []
-planned_disconnection: List[str] = []
+online_clients: dict[str, "Client"] = {}
+private_rooms: dict[str, "Room"] = {}
+public_rooms: dict[str, "Room"] = {}
+public_rooms_keys: list[str] = []
+planned_disconnection: list[str] = []
 
 
 def encode_json(message) -> str:
@@ -54,9 +53,9 @@ class Room:
 
     def __init__(self, room_key) -> None:
         self.room_key: str = room_key
-        self.clients: Dict[str, Client] = {}
-        self.socket_list: List = []  # list of websocket object ( for brocasting )
-        self.game_status: Dict = {"winner": None}
+        self.clients: dict[str, Client] = {}
+        self.socket_list: list = []  # list of websocket object ( for brocasting )
+        self.game_status: dict = {"winner": None}
         self.private: bool = False
 
     def __len__(self):
