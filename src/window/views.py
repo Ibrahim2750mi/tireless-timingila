@@ -240,6 +240,8 @@ class Game(arcade.View):
         self.h_box_top = None
         self.manager = None
 
+        self.name_labels = []
+
         self.round = 1
 
     def on_show_view(self):
@@ -269,11 +271,31 @@ class Game(arcade.View):
 
         self.v_box = arcade.gui.UIBoxLayout()
 
+        player_names = tuple(self.all_player_data.values())
+
+        for name in player_names:
+            style = STYLE_WHITE
+            if name == self.player_name:
+                style = STYLE_RED
+            label = arcade.gui.UILabel(text=name, style=style)
+            self.name_labels.append(label)
+            self.v_box.append(label)
+
+
         self.manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="left",
                 anchor_y="top",
                 child=self.h_box_top
+            )
+        )
+
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="left",
+                anchor_y="bottom",
+                align_y = 50,
+                child=self.v_box
             )
         )
 
