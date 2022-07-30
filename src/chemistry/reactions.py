@@ -3,7 +3,6 @@
 import json
 import random
 import string
-from typing import Dict, List
 
 
 class Reaction:
@@ -18,7 +17,7 @@ class Reaction:
         :reactants: Contains the reactants present in the chemical reaction.
     """
 
-    def __init__(self, not_parsed_reaction: List[str], product: str):
+    def __init__(self, not_parsed_reaction: list[str], product: str):
         self.reaction = not_parsed_reaction[0]
         self.reactants = [*not_parsed_reaction[1:]]
         self.product = product
@@ -30,7 +29,7 @@ class Reaction:
             html_reaction = html_reaction.replace(digit, f"<sub>{digit}</sub>")
         return html_reaction
 
-    def options(self) -> Dict[str, List]:
+    def options(self) -> dict[str, list]:
         """Generate suitable options for the reactants to choose for."""
         pass
 
@@ -39,7 +38,7 @@ with open("reactions.json", "r") as f:
     reactions_cache = json.load(f)
 
 
-def get_reaction(exclude: List[List[str]] = []) -> Reaction:
+def get_reaction(exclude: list[list[str]] = []) -> Reaction:
     """
     Gets a chemical reaction from the reactions.json file.
 
