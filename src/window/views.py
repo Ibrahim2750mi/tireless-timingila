@@ -10,6 +10,15 @@ import websockets.exceptions
 
 from config import PATH, SCREEN_HEIGHT, SCREEN_WIDTH
 
+STYLE_WHITE = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_color": (202, 201, 202),
+               "border_color": (119, 117, 119)}
+
+STYLE_RED = {"font_name": "Dilo World", "font_color": (255, 0, 0), "bg_color": (202, 201, 202),
+             "border_color": (119, 117, 119)}
+
+MENU_BACKGROUND = arcade.load_texture(f"{PATH}assets/backgrounds/menu_bg.jpg", width=SCREEN_WIDTH,
+                                      height=SCREEN_HEIGHT)
+
 
 def encode_json(message) -> str:
     """Helper function ( dict -> str of json )"""
@@ -36,8 +45,6 @@ class Menu(arcade.View):
         self.v_box_heading = None
 
         self.manager = None
-        self.background = arcade.load_texture(f"{PATH}assets/backgrounds/menu_bg.jpg",
-                                              width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
 
         arcade.load_font(f"{PATH}assets/fonts/DiloWorld-mLJLv.ttf")
 
@@ -52,16 +59,10 @@ class Menu(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        style_white = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_color": (202, 201, 202),
-                       "border_color": (119, 117, 119)}
-
-        style_red = {"font_name": "Dilo World", "font_color": (255, 0, 0), "bg_color": (202, 201, 202),
-                     "border_color": (119, 117, 119)}
-
-        play_button = arcade.gui.UIFlatButton(text="PLAY", width=200, style=style_white)
+        play_button = arcade.gui.UIFlatButton(text="PLAY", width=200, style=STYLE_WHITE)
         play_button.on_click = self._on_click_play_button
-        create_lobby_button = arcade.gui.UIFlatButton(text="Create Lobby", width=200, style=style_white)
-        dummy_play_button = arcade.gui.UIFlatButton(text="Play", width=200, style=style_red)
+        create_lobby_button = arcade.gui.UIFlatButton(text="Create Lobby", width=200, style=STYLE_WHITE)
+        dummy_play_button = arcade.gui.UIFlatButton(text="Play", width=200, style=STYLE_RED)
         dummy_play_button.on_click = self._on_click_dummy_play_button
 
         self.v_box.add(play_button)
@@ -80,7 +81,7 @@ class Menu(arcade.View):
 
         arcade.draw_lrwh_rectangle_textured(0, 0,
                                             SCREEN_WIDTH, SCREEN_HEIGHT,
-                                            self.background)
+                                            MENU_BACKGROUND)
         self.manager.draw()
 
     def _on_click_dummy_play_button(self, _: arcade.gui.UIOnClickEvent) -> None:
@@ -121,6 +122,7 @@ class WaitingScreen(arcade.View):
         self.name_input_box = None
 
         self.client_id = None
+        self.client_data = None
         self.room_key = None
 
         self.all_player_ids = None
@@ -137,9 +139,10 @@ class WaitingScreen(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        self.name_input_box = arcade.gui.UIInputText(text="Enter your name here", width=250, height=20)
-        name_input_box_border = self.name_input_box.with_border(width=2, color=(0, 0, 0))
-        find_players_button = arcade.gui.UIFlatButton(text="Find players", width=250)
+        self.name_input_box = arcade.gui.UIInputText(text="Enter your name here", width=250, height=20,
+                                                     text_color=(255, 0, 0), font_name="Dilo World")
+        name_input_box_border = self.name_input_box.with_border(width=2, color=(119, 117, 119))
+        find_players_button = arcade.gui.UIFlatButton(text="Find players", width=250, style=STYLE_WHITE)
         find_players_button.on_click = self._on_click_find_players_button
 
         self.v_box.add(name_input_box_border)
@@ -157,6 +160,11 @@ class WaitingScreen(arcade.View):
         """Called when this view should draw."""
         self.clear()
 
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH, SCREEN_HEIGHT,
+                                            MENU_BACKGROUND)
+        arcade.draw_rectangle_filled(self.name_input_box.x + 125, self.name_input_box.y + 10,
+                                     250, 20, (202, 201, 202))
         self.manager.draw()
 
     def _on_click_find_players_button(self, _: arcade.gui.UIOnClickEvent):
@@ -187,11 +195,11 @@ class WaitingScreen(arcade.View):
                 msg = await ws.recv()
                 print(msg)
                 event = decode_json(msg)
-                self.client_id = event["player"] if event.get("player", None) else self.client_id
-                self.room_key = event["room"] if event.get("room", None) else self.room_key
+                self.client_id = event.get("player", self.client_id)
+                self.room_key = event.get("room", self.room_key)
 
-                num_players = int(event['length']) if event.get("length", None) else 0
-                client_data = event['client_data'] if event.get("client_data", None) else 0
+                num_players = int(event.get("length", 0))
+                client_data = event.get("client_data", 0)
 
                 if num_players == 4:
                     self.client_data = client_data
@@ -212,9 +220,15 @@ class Game(arcade.View):
     :param main_window: Main window in which it showed.
     """
 
-    def __init__(self, main_window: arcade.Window, player_ids, player_name, player_id, room_id):
+    def __init__(self, main_window: arcade.Window, all_player_data: dict[str, str], player_name: str, player_id: str,
+                 room_id: str):
         super().__init__(main_window)
         self.main_window = main_window
+
+        self.all_player_data = all_player_data
+        self.player_name = player_name
+        self.player_id = player_id
+        self.room_id = room_id
 
     def on_show_view(self):
         """Called when the current is switched to this view."""

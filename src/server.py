@@ -8,7 +8,7 @@ from typing import Dict, List
 import websockets
 import websockets.legacy.server
 
-ROOM_SIZE = 4
+from config import ROOM_SIZE
 
 # Global varibales
 online_clients: Dict[str, "Client"] = {}
@@ -268,12 +268,19 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
         try:
             if len(current_room) == ROOM_SIZE:
                 # current player is the fourth player that join the game.
+
+                client_data = tuple(current_room.clients.keys())
+                client_names = []
+                for client in client_data:
+                    client_names.append(online_clients[client].name)
+                client_data = dict(zip(client_data, client_names))
+
                 event = {
                     "type": "reply_room_status",
                     "length": len(current_room),
-                    "client_data": tuple(current_room.clients.keys()),
+                    "client_data": client_data,
                 }
-                await websockets.send(encode_json(event))
+                await websocket.send(encode_json(event))
 
                 # websockets.broadcast(current_room.socket_list, encode_json(event))
 
@@ -344,6 +351,11 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                         }
 
                     if room:
+                        client_data = tuple(room.clients.keys())
+                        client_names = []
+                        for client in client_data:
+                            client_names.append(online_clients[client].name)
+                        client_data = dict(zip(client_data, client_names))
                         event = {
                             "type": "reply_room_status",
                             "length": len(room),
