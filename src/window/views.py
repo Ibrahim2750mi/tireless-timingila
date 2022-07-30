@@ -196,11 +196,11 @@ class WaitingScreen(arcade.View):
                 msg = await ws.recv()
                 print(msg)
                 event = decode_json(msg)
-                self.client_id = event["player"] if event.get("player", None) else self.client_id
-                self.room_key = event["room"] if event.get("room", None) else self.room_key
+                self.client_id = event.get("player", self.client_id)
+                self.room_key = event.get("room", self.room_key)
 
-                num_players = int(event['length']) if event.get("length", None) else 0
-                client_data = event['client_data'] if event.get("client_data", None) else 0
+                num_players = int(event.get("length", 0))
+                client_data = event.get("client_data", 0)
 
                 if num_players == 4:
                     self.client_data = client_data
