@@ -9,6 +9,7 @@ import nest_asyncio
 import websockets
 import websockets.exceptions
 
+from chemistry import Reaction
 from config import ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
 
 nest_asyncio.apply()
@@ -233,15 +234,16 @@ class Game(arcade.View):
         self.player_id = player_id
         self.room_id = room_id
 
-        self.reaction = []
+        self.reaction = {}
 
-        self.h_box = None
         self.v_box = None
+        self.h_box_top = None
+        self.manager = None
+
+        self.round = 1
 
     def on_show_view(self):
         """Called when the current is switched to this view."""
-        self.setup()
-
         event = {
             "type": "get_reaction_pub",
             "player": self.player_id,
@@ -250,13 +252,36 @@ class Game(arcade.View):
         }
         asyncio.run(self.client(event))
 
+        self.setup()
+
     def setup(self):
         """Set up the game variables. Call to re-start the game."""
-        pass
+        self.manager = arcade.gui.UIManager()
+        self.manager.enable()
+
+        self.h_box_top = arcade.gui.UIBoxLayout(vertical=False)
+
+        round_label = arcade.gui.UILabel(text=f"round {self.round} of 5")
+        reaction_label = arcade.gui.UILabel(text=f"Recipe is: {self.reaction['reaction']}", width=250)
+
+        self.h_box_top.add(round_label)
+        self.h_box_top.add(reaction_label)
+
+        self.v_box = arcade.gui.UIBoxLayout()
+
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="left",
+                anchor_y="top",
+                child=self.h_box_top
+            )
+        )
 
     def on_draw(self):
         """Called when this view should draw."""
         self.clear()
+
+        self.manager.draw()
 
     async def client(self, event):
         """Client side for the waiting screen."""
@@ -265,7 +290,10 @@ class Game(arcade.View):
                 await ws.send(encode_json(event))
                 msg = await ws.recv()
                 event_recv = decode_json(msg)
-                if event['type'] = "get_reaction_pub":
-                    
+                if event['type'] == "get_reaction_pub":
+                    self.reaction['reaction_original'] = event_recv['reaction_original']
+                    self.reaction['reaction'] = event_recv['reaction']
+                    self.reaction['reactants'] = event_recv['reactants']
+                    self.reaction['products'] = event_recv["products"]
             except Exception as e:
                 print(e)
