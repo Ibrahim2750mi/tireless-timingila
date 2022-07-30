@@ -1,5 +1,6 @@
 import asyncio
 import json
+from time import sleep
 import webbrowser
 from random import randint
 
@@ -14,10 +15,12 @@ from config import ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
 
 nest_asyncio.apply()
 
-STYLE_WHITE = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_color": (202, 201, 202),
+FONT_COLOR_WHITE = (255, 255, 255)
+FONT_COLOR_RED = (255, 0, 0)
+STYLE_WHITE = {"font_name": "Dilo World", "font_color": FONT_COLOR_WHITE, "bg_color": (202, 201, 202),
                "border_color": (119, 117, 119)}
 
-STYLE_RED = {"font_name": "Dilo World", "font_color": (255, 0, 0), "bg_color": (202, 201, 202),
+STYLE_RED = {"font_name": "Dilo World", "font_color": FONT_COLOR_RED, "bg_color": (202, 201, 202),
              "border_color": (119, 117, 119)}
 
 MENU_BACKGROUND = arcade.load_texture(str(ASSET_PATH / "backgrounds" / "menu_bg.jpg"), width=SCREEN_WIDTH,
@@ -254,6 +257,9 @@ class Game(arcade.View):
         }
         asyncio.run(self.client(event))
 
+        sleep(0.5)
+        # wait untill receiving reaction information from server
+        print("deug : If run into 'on show view' setup fun ")
         self.setup()
 
     def setup(self):
@@ -262,9 +268,12 @@ class Game(arcade.View):
         self.manager.enable()
 
         self.h_box_top = arcade.gui.UIBoxLayout(vertical=False)
-
-        round_label = arcade.gui.UILabel(text=f"round {self.round} of 5")
-        reaction_label = arcade.gui.UILabel(text=f"Recipe is: {self.reaction['reaction']}", width=250)
+        # switch font color to red just to test if it's working
+        round_label = arcade.gui.UILabel(text=f"round {self.round} of 5", text_color=FONT_COLOR_RED)
+        reaction_label = arcade.gui.UILabel(
+            text=f"Recipe is: {self.reaction['reaction']}",
+            width=250,
+            text_color=FONT_COLOR_RED)
 
         self.h_box_top.add(round_label)
         self.h_box_top.add(reaction_label)
@@ -274,13 +283,12 @@ class Game(arcade.View):
         player_names = tuple(self.all_player_data.values())
 
         for name in player_names:
-            style = STYLE_WHITE
+            style = FONT_COLOR_WHITE
             if name == self.player_name:
-                style = STYLE_RED
-            label = arcade.gui.UILabel(text=name, style=style)
+                style = FONT_COLOR_RED
+            label = arcade.gui.UILabel(text=name, font_name="Dilo World", text_color=style)
             self.name_labels.append(label)
-            self.v_box.append(label)
-
+            self.v_box.add(label)
 
         self.manager.add(
             arcade.gui.UIAnchorWidget(
@@ -294,7 +302,7 @@ class Game(arcade.View):
             arcade.gui.UIAnchorWidget(
                 anchor_x="left",
                 anchor_y="bottom",
-                align_y = 50,
+                align_y=50,
                 child=self.v_box
             )
         )
