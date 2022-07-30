@@ -5,9 +5,6 @@ import random
 import string
 from typing import Dict, List
 
-# writeable = {"salt": [["HCl + NaOH", "H", "Cl", "Na", "OH"], ["H2SO4 + KOH", "H2", "SO4", "K", "OH"]],
-#              "ore extraction": [["FeO + CO", "Fe", "O", "C", "O"], ["H2S + SO2", "H2", "S", "S", "O2"]]}
-
 
 class Reaction:
     """
@@ -38,16 +35,20 @@ class Reaction:
         pass
 
 
-def get_reaction(exclude: List[List[str]] = None) -> Reaction:
+with open("reactions.json", "r") as f:
+    reactions_cache = json.load(f)
+
+
+def get_reaction(exclude: List[List[str]] = []) -> Reaction:
     """
     Gets a chemical reaction from the reactions.json file.
 
     :param exclude: Chemical reactions to exclude.
     """
-    with open("reactions.json", "r") as f:
-        reactions = json.load(f)
+    reactions = reactions_cache
 
     if exclude:
+        reactions = reactions[:]
         for reaction_type, reaction_list in reactions.items():
             for reaction in reaction_list:
                 if reaction in exclude:
