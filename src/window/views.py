@@ -120,8 +120,6 @@ class WaitingScreen(arcade.View):
         self.manager = None
 
         self.name_input_box = None
-        self.waiting_label = None
-        self.num_dots = None
 
         self.client_id = None
         self.client_data = None
@@ -137,7 +135,6 @@ class WaitingScreen(arcade.View):
 
     def setup(self) -> None:
         """Set up the game variables. Call to re-start the game."""
-        self.num_dots = 0
 
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
         self.manager = arcade.gui.UIManager()
@@ -148,11 +145,9 @@ class WaitingScreen(arcade.View):
         name_input_box_border = self.name_input_box.with_border(width=2, color=(119, 117, 119))
         find_players_button = arcade.gui.UIFlatButton(text="Find players", width=250, style=STYLE_WHITE)
         find_players_button.on_click = self._on_click_find_players_button
-        self.waiting_label = arcade.gui.UILabel(text=" ", width=250, font_color=(255, 255, 255), align="center")
 
         self.v_box.add(name_input_box_border)
         self.v_box.add(find_players_button)
-        self.v_box.add(self.waiting_label)
 
         self.manager.add(
             arcade.gui.UIAnchorWidget(
@@ -195,7 +190,6 @@ class WaitingScreen(arcade.View):
 
     async def client(self, event):
         """Client side for the waiting screen."""
-        self.num_dots += 1
         async with websockets.connect("ws://localhost:8002") as ws:
             try:
                 await ws.send(encode_json(event))
@@ -207,9 +201,6 @@ class WaitingScreen(arcade.View):
 
                 num_players = int(event['length']) if event.get("length", None) else 0
                 client_data = event['client_data'] if event.get("client_data", None) else 0
-
-                self.waiting_label.text = f"Waiting for players" \
-                                          f"{(self.num_dots % 3 if self.num_dots % 3 else 3) * '.'} {num_players}/4 "
 
                 if num_players == 4:
                     self.client_data = client_data
@@ -230,9 +221,15 @@ class Game(arcade.View):
     :param main_window: Main window in which it showed.
     """
 
-    def __init__(self, main_window: arcade.Window, player_ids, player_name, player_id, room_id):
+    def __init__(self, main_window: arcade.Window, all_player_data: dict[str, str], player_name: str, player_id: str,
+                 room_id: str):
         super().__init__(main_window)
         self.main_window = main_window
+
+        self.all_player_data = all_player_data
+        self.player_name = player_name
+        self.player_id = player_id
+        self.room_id = room_id
 
     def on_show_view(self):
         """Called when the current is switched to this view."""
