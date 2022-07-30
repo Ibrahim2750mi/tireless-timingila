@@ -10,14 +10,15 @@ import websockets.exceptions
 
 from config import PATH, SCREEN_HEIGHT, SCREEN_WIDTH
 
-
 STYLE_WHITE = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_color": (202, 201, 202),
                "border_color": (119, 117, 119)}
 
 STYLE_RED = {"font_name": "Dilo World", "font_color": (255, 0, 0), "bg_color": (202, 201, 202),
              "border_color": (119, 117, 119)}
 
-MENU_BACKGROUND = arcade.load_texture(f"{PATH}assets/backgrounds/menu_bg.jpg", width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+MENU_BACKGROUND = arcade.load_texture(f"{PATH}assets/backgrounds/menu_bg.jpg", width=SCREEN_WIDTH,
+                                      height=SCREEN_HEIGHT)
+
 
 def encode_json(message) -> str:
     """Helper function ( dict -> str of json )"""
@@ -119,8 +120,11 @@ class WaitingScreen(arcade.View):
         self.manager = None
 
         self.name_input_box = None
+        self.waiting_label = None
+        self.num_dots = None
 
         self.client_id = None
+        self.client_data = None
         self.room_key = None
 
         self.all_player_ids = None
@@ -133,6 +137,8 @@ class WaitingScreen(arcade.View):
 
     def setup(self) -> None:
         """Set up the game variables. Call to re-start the game."""
+        self.num_dots = 0
+
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
@@ -142,9 +148,11 @@ class WaitingScreen(arcade.View):
         name_input_box_border = self.name_input_box.with_border(width=2, color=(119, 117, 119))
         find_players_button = arcade.gui.UIFlatButton(text="Find players", width=250, style=STYLE_WHITE)
         find_players_button.on_click = self._on_click_find_players_button
+        self.waiting_label = arcade.gui.UILabel(text=" ", width=250, font_color=(255, 255, 255), align="center")
 
         self.v_box.add(name_input_box_border)
         self.v_box.add(find_players_button)
+        self.v_box.add(self.waiting_label)
 
         self.manager.add(
             arcade.gui.UIAnchorWidget(
@@ -187,6 +195,7 @@ class WaitingScreen(arcade.View):
 
     async def client(self, event):
         """Client side for the waiting screen."""
+        self.num_dots += 1
         async with websockets.connect("ws://localhost:8002") as ws:
             try:
                 await ws.send(encode_json(event))
@@ -198,6 +207,9 @@ class WaitingScreen(arcade.View):
 
                 num_players = int(event['length']) if event.get("length", None) else 0
                 client_data = event['client_data'] if event.get("client_data", None) else 0
+
+                self.waiting_label.text = f"Waiting for players" \
+                                          f"{(self.num_dots % 3 if self.num_dots % 3 else 3) * '.'} {num_players}/4 "
 
                 if num_players == 4:
                     self.client_data = client_data
