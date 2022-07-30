@@ -269,11 +269,12 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
             if len(current_room) == ROOM_SIZE:
                 # current player is the fourth player that join the game.
 
-                client_data = tuple(current_room.clients.keys())
+                client_ids = tuple(current_room.clients.keys())
                 client_names = []
-                for client in client_data:
+                for client in client_ids:
                     client_names.append(online_clients[client].name)
-                client_data = dict(zip(client_data, client_names))
+                client_data = dict(zip(client_ids, client_names))
+                print(client_data)
 
                 event = {
                     "type": "reply_room_status",
@@ -351,15 +352,16 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                         }
 
                     if room:
-                        client_data = tuple(room.clients.keys())
+                        client_ids = tuple(room.clients.keys())
                         client_names = []
-                        for client in client_data:
+                        for client in client_ids:
                             client_names.append(online_clients[client].name)
-                        client_data = dict(zip(client_data, client_names))
+                        client_data = dict(zip(client_ids, client_names))
+
                         event = {
                             "type": "reply_room_status",
                             "length": len(room),
-                            "client_data": tuple(room.clients.keys()),
+                            "client_data": client_data,
                         }
                     await websocket.send(encode_json(event))
     finally:
