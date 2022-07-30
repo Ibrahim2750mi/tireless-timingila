@@ -1,4 +1,4 @@
-from reactions import Reaction, get_reaction
+from chemistry.reactions import Reaction, get_reaction
 
 __all__ = [
     "Reaction",

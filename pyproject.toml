@@ -9,6 +9,7 @@ license = "MIT"
 python = "3.10.*"
 arcade = "^2.6.15"
 websockets = "^10.3"
+nest_asyncio = "^1.5.5"
 
 [tool.poetry.dev-dependencies]
 # Base tools

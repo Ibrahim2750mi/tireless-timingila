@@ -8,6 +8,7 @@ import websockets
 import websockets.legacy.server
 
 from config import ROOM_SIZE
+from chemistry import Reaction, get_reaction
 
 # Global varibales
 online_clients: dict[str, "Client"] = {}
@@ -55,8 +56,10 @@ class Room:
         self.room_key: str = room_key
         self.clients: dict[str, Client] = {}
         self.socket_list: list = []  # list of websocket object ( for brocasting )
-        self.game_status: dict = {"winner": None}
+        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": []}
         self.private: bool = False
+
+        self.reaction: Reaction = None
 
     def __len__(self):
         return len(self.clients)
@@ -273,12 +276,12 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
                 for client in client_ids:
                     client_names.append(online_clients[client].name)
                 client_data = dict(zip(client_ids, client_names))
-                print(client_data)
-
+                current_room.game_status['started'] = True
                 event = {
                     "type": "reply_room_status",
                     "length": len(current_room),
                     "client_data": client_data,
+                    "started": True
                 }
                 await websocket.send(encode_json(event))
 
@@ -340,6 +343,7 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                     await create_private_room(websocket, client_id)
 
                 case "room_status":
+                    print("called reaction 2")
                     room = None
                     if public_rooms.get(event["room"], None) is not None:
                         room = public_rooms[event['room']]
@@ -363,6 +367,16 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                             "client_data": client_data,
                         }
                     await websocket.send(encode_json(event))
+                case "get_reaction_pub":
+                    room = public_rooms[event['room']]
+                    if not room.reaction:
+                        reaction = get_reaction()
+                        room.reaction = reaction
+                    else:
+                        reaction = room.reaction
+                    omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
+                    await websocket.send(encode_json(reaction.json(omit_number)))
+
     finally:
         if client_id in planned_disconnection:
             planned_disconnection.remove(client_id)

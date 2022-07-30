@@ -5,10 +5,13 @@ from random import randint
 
 import arcade
 import arcade.gui
+import nest_asyncio
 import websockets
 import websockets.exceptions
 
-from config import PATH, SCREEN_HEIGHT, SCREEN_WIDTH
+from config import ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
+
+nest_asyncio.apply()
 
 STYLE_WHITE = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_color": (202, 201, 202),
                "border_color": (119, 117, 119)}
@@ -16,7 +19,7 @@ STYLE_WHITE = {"font_name": "Dilo World", "font_color": (255, 255, 255), "bg_col
 STYLE_RED = {"font_name": "Dilo World", "font_color": (255, 0, 0), "bg_color": (202, 201, 202),
              "border_color": (119, 117, 119)}
 
-MENU_BACKGROUND = arcade.load_texture(f"{PATH}assets/backgrounds/menu_bg.jpg", width=SCREEN_WIDTH,
+MENU_BACKGROUND = arcade.load_texture(str(ASSET_PATH / "backgrounds" / "menu_bg.jpg"), width=SCREEN_WIDTH,
                                       height=SCREEN_HEIGHT)
 
 
@@ -46,7 +49,7 @@ class Menu(arcade.View):
 
         self.manager = None
 
-        arcade.load_font(f"{PATH}assets/fonts/DiloWorld-mLJLv.ttf")
+        arcade.load_font(str(ASSET_PATH / "fonts" / "DiloWorld-mLJLv.ttf"))
 
     def on_show_view(self) -> None:
         """Called when the current is switched to this view."""
@@ -59,7 +62,7 @@ class Menu(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        play_button = arcade.gui.UIFlatButton(text="PLAY", width=200, style=STYLE_WHITE)
+        play_button = arcade.gui.UIFlatButton(text="PLA<sub>Y</sub>", width=200, style=STYLE_WHITE)
         play_button.on_click = self._on_click_play_button
         create_lobby_button = arcade.gui.UIFlatButton(text="Create Lobby", width=200, style=STYLE_WHITE)
         dummy_play_button = arcade.gui.UIFlatButton(text="Play", width=200, style=STYLE_RED)
@@ -201,7 +204,7 @@ class WaitingScreen(arcade.View):
                 num_players = int(event.get("length", 0))
                 client_data = event.get("client_data", 0)
 
-                if num_players == 4:
+                if num_players == ROOM_SIZE:
                     self.client_data = client_data
                     arcade.unschedule(self.lambda_client)
                     game = Game(self.main_window, self.client_data, self.name_input_box.text, self.client_id,
@@ -230,9 +233,22 @@ class Game(arcade.View):
         self.player_id = player_id
         self.room_id = room_id
 
+        self.reaction = []
+
+        self.h_box = None
+        self.v_box = None
+
     def on_show_view(self):
         """Called when the current is switched to this view."""
         self.setup()
+
+        event = {
+            "type": "get_reaction_pub",
+            "player": self.player_id,
+            "auto_disconnect": True,
+            "room": self.room_id
+        }
+        asyncio.run(self.client(event))
 
     def setup(self):
         """Set up the game variables. Call to re-start the game."""
@@ -241,3 +257,15 @@ class Game(arcade.View):
     def on_draw(self):
         """Called when this view should draw."""
         self.clear()
+
+    async def client(self, event):
+        """Client side for the waiting screen."""
+        async with websockets.connect("ws://localhost:8002") as ws:
+            try:
+                await ws.send(encode_json(event))
+                msg = await ws.recv()
+                event_recv = decode_json(msg)
+                if event['type'] = "get_reaction_pub":
+                    
+            except Exception as e:
+                print(e)

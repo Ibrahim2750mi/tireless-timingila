@@ -4,6 +4,10 @@ import json
 import random
 import string
 
+from config import SRC_PATH
+
+already_sent_reactions = []
+
 
 class Reaction:
     """
@@ -33,28 +37,38 @@ class Reaction:
         """Generate suitable options for the reactants to choose for."""
         pass
 
+    def omit(self, position: int):
+        to_omit = self.reactants[position]
+        return self.reaction.replace(to_omit, "XX")
 
-with open("reactions.json", "r") as f:
+    def json(self, omit_number) -> dict[str, str]:
+        return {
+            "type": "reaction",
+            "reaction_original": self.reaction,
+            "reaction": self.omit(omit_number),
+            "reactants": self.reactants,
+            "products": self.product
+        }
+
+
+with open(str(SRC_PATH / "chemistry" / "reactions.json"), "r") as f:
     reactions_cache = json.load(f)
 
 
-def get_reaction(exclude: list[list[str]] = []) -> Reaction:
-    """
-    Gets a chemical reaction from the reactions.json file.
-
-    :param exclude: Chemical reactions to exclude.
-    """
+def get_reaction() -> Reaction:
+    """Gets a chemical reaction from the reactions.json file."""
     reactions = reactions_cache
 
-    if exclude:
+    if already_sent_reactions:
         reactions = reactions[:]
         for reaction_type, reaction_list in reactions.items():
             for reaction in reaction_list:
-                if reaction in exclude:
+                if reaction in already_sent_reactions:
                     reactions[reaction_type].remove(reaction)
 
     selected_react_type = random.choice(tuple(reactions.keys()))
     selected_react = random.choice(reactions[selected_react_type])
+    already_sent_reactions.append(selected_react)
     return Reaction(selected_react, selected_react_type)
 
 
