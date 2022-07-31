@@ -431,9 +431,9 @@ class Game(arcade.View):
         if self.round - 1 == MAX_ROUNDS:
             arcade.unschedule(self.lambda_client)
             if self.rounds_won >= 2:
-                decision = Decision(self.main_window, "YOU WIN!")
+                decision = Decision(self.main_window, "THE PATIENT SURVIVED!")
             else:
-                decision = Decision(self.main_window, "YOU LOSE")
+                decision = Decision(self.main_window, "YOU KILLED THE PATIENT")
             self.main_window.show_view(decision)
 
     async def client(self, event):
@@ -547,7 +547,7 @@ class Decision(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        decision_label = arcade.gui.UILabel(text=self.decision, font_size=36, text_color=FONT_COLOR_RED,
+        decision_label = arcade.gui.UILabel(text=self.decision, font_size=28, text_color=FONT_COLOR_RED,
                                             font_name="Dilo World")
         decision_label.fit_content()
 
