@@ -388,7 +388,6 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                         "turn": room.game_status['turn'],
                         "reaction": ''.join(reactants),
                     }
-                    print(event)
                     await websocket.send(encode_json(event))
                 case "select_option_pub":
                     room = public_rooms[event['room']]
@@ -400,14 +399,12 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
 
                     room.game_status['turn'] = event['turn']
                     if room.game_status['turn'] == ROOM_SIZE:
-                        print("called reset options")
                         room.reaction = None
                         room.game_status['turn'] = 0
                     event = {
                         "type": "option_reply",
                         'turn': room.game_status['turn'],
                     }
-                    print("room_status", room.game_status, room.reaction)
                     await websocket.send(encode_json(event))
     finally:
         if client_id in planned_disconnection:

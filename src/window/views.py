@@ -29,6 +29,9 @@ STYLE_RED = {"font_name": "Dilo World", "font_color": FONT_COLOR_RED, "bg_color"
 MENU_BACKGROUND = arcade.load_texture(str(ASSET_PATH / "backgrounds" / "menu_bg.jpg"), width=SCREEN_WIDTH,
                                       height=SCREEN_HEIGHT)
 
+arcade.load_font(str(ASSET_PATH / "fonts" / "DiloWorld-mLJLv.ttf"))
+arcade.load_font(str(ASSET_PATH / "fonts" / "KgTrueColors-vG5O.ttf"))
+
 
 def encode_json(message) -> str:
     """Helper function ( dict -> str of json )"""
@@ -55,8 +58,6 @@ class Menu(arcade.View):
         self.v_box_heading = None
 
         self.manager = None
-
-        arcade.load_font(str(ASSET_PATH / "fonts" / "DiloWorld-mLJLv.ttf"))
 
     def on_show_view(self) -> None:
         """Called when the current is switched to this view."""
@@ -308,12 +309,13 @@ class Game(arcade.View):
             text_color=FONT_COLOR_RED,
             font_size=20,
             height=50,
+            font_name="KG True Colors",
         )
         self.reaction_label.fit_content()
         v_box_h_box = arcade.gui.UIBoxLayout(vertical=False)
         for option in self.reaction['options']:
             mod_style = STYLE_WHITE
-            mod_style["font_name"] = "Arial"
+            mod_style["font_name"] = "KG True Colors"
             option_method = partial(self._on_click_option, option=option)
             options_button = arcade.gui.UIFlatButton(text=option, width=250 / 4, style=mod_style)
             options_button.on_click = option_method
@@ -327,8 +329,9 @@ class Game(arcade.View):
             text=f"Current reaction is: {self.reaction['current_reaction']}",
             width=300,
             text_color=FONT_COLOR_RED,
-            font_size=12,
+            font_size=15,
             height=50,
+            font_name="KG True Colors",
         )
         self.current_label.fit_content()
         self.v_box_top.add(self.reaction_label)
@@ -369,6 +372,7 @@ class Game(arcade.View):
             arcade.gui.UIAnchorWidget(
                 anchor_x="center",
                 anchor_y="top",
+                align_y=-20,
                 child=self.v_box_top
             )
         )
@@ -445,7 +449,6 @@ class Game(arcade.View):
                         self.setup()
                         self.get_turn()
                     case "select_option_pub":
-                        print(event_recv)
                         event = {
                             "type": "turn_status_pub",
                             "player": self.player_id,
@@ -472,7 +475,6 @@ class Game(arcade.View):
                         self.current_label.text = f"Current reaction is: {self.reaction['current_reaction']}"
                         self.current_label.fit_content()
 
-                        print(event)
                         self.lambda_client = lambda _: asyncio.run(self.client(event))
                         arcade.schedule(self.lambda_client, WAITING_SECOND // 3)
                     case "turn_status_pub":
@@ -513,7 +515,7 @@ class Game(arcade.View):
                         pass
 
             except Exception as e:
-                raise e
+                print(e)
 
 
 class Decision(arcade.View):
