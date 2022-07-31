@@ -41,7 +41,9 @@ class Reaction:
 
     def options(self, position) -> list[list[str]]:
         """Generate suitable options for the reactants to choose for."""
-        elem = self.reactants[position]
+        option_list = self.reactants.copy()
+        option_list.remove(" ")
+        elem = option_list[position]
         option_list = options_cache[elem]
         return random.choice(option_list)
 
@@ -88,6 +90,9 @@ if __name__ == '__main__':
     # with open(str(SRC_PATH / "chemistry" / "reactions.json"), "w") as f:
     #      json.dump(writeable, f, indent=2)
     r = get_reaction()
+    print(r.reaction, r.reactants, r.html_reaction(), r.json(0))
     print(r.reaction, r.reactants, r.html_reaction(), r.json(1))
+    print(r.reaction, r.reactants, r.html_reaction(), r.json(2))
+    print(r.reaction, r.reactants, r.html_reaction(), r.json(3))
     r1 = get_reaction()
     print(r1.reaction, r1.reactants, r1.html_reaction(), r1.json(0))

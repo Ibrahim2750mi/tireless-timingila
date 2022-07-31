@@ -367,7 +367,7 @@ class Game(arcade.View):
             arcade.gui.UIAnchorWidget(
                 anchor_x="left",
                 anchor_y="center",
-                align_x=20,
+                align_y=20,
                 child=self.v_box
             )
         )
@@ -393,7 +393,9 @@ class Game(arcade.View):
             arcade.draw_rectangle_filled(label.x + label.width / 2, label.y + label.height / 2,
                                          label.width, label.height, (202, 201, 202))
 
-        self.manager.draw()
+        if self.manager:
+            self.manager.draw()
+
 
     def _on_click_option(self, _: arcade.gui.UIOnClickEvent, option):
         if self.reaction["index"] != self.turn_index:
