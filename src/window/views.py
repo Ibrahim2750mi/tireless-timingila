@@ -29,8 +29,10 @@ STYLE_RED = {"font_name": "Dilo World", "font_color": FONT_COLOR_RED, "bg_color"
 MENU_BACKGROUND = arcade.load_texture(str(ASSET_PATH / "backgrounds" / "menu_bg.jpg"), width=SCREEN_WIDTH,
                                       height=SCREEN_HEIGHT)
 
+GAME_BACKGROUND = arcade.load_texture(str(ASSET_PATH / "backgrounds" / "game_bg.jpg"))
+
 arcade.load_font(str(ASSET_PATH / "fonts" / "DiloWorld-mLJLv.ttf"))
-arcade.load_font(str(ASSET_PATH / "fonts" / "KgTrueColors-vG5O.ttf"))
+arcade.load_font(str(ASSET_PATH / "fonts" / "QuadratumUnum-LW0Z.ttf"))
 
 
 def encode_json(message) -> str:
@@ -73,6 +75,7 @@ class Menu(arcade.View):
         play_button = arcade.gui.UIFlatButton(text="PLAY", width=200, style=STYLE_WHITE)
         play_button.on_click = self._on_click_play_button
         create_lobby_button = arcade.gui.UIFlatButton(text="Create Lobby", width=200, style=STYLE_WHITE)
+        create_lobby_button.on_click = self._on_click_play_button
         dummy_play_button = arcade.gui.UIFlatButton(text="Play", width=200, style=STYLE_RED)
         dummy_play_button.on_click = self._on_click_dummy_play_button
 
@@ -307,15 +310,16 @@ class Game(arcade.View):
             text=f"Recipe is: {self.reaction['reaction']}",
             width=450,
             text_color=FONT_COLOR_RED,
-            font_size=20,
+            font_size=24,
             height=50,
-            font_name="KG True Colors",
+            font_name="Quadratum Unum",
         )
         self.reaction_label.fit_content()
         v_box_h_box = arcade.gui.UIBoxLayout(vertical=False)
         for option in self.reaction['options']:
             mod_style = STYLE_WHITE
-            mod_style["font_name"] = "KG True Colors"
+            mod_style["font_name"] = "Quadratum Unum"
+            mod_style["font_size"] = 16
             option_method = partial(self._on_click_option, option=option)
             options_button = arcade.gui.UIFlatButton(text=option, width=250 / 4, style=mod_style)
             options_button.on_click = option_method
@@ -329,9 +333,9 @@ class Game(arcade.View):
             text=f"Current reaction is: {self.reaction['current_reaction']}",
             width=300,
             text_color=FONT_COLOR_RED,
-            font_size=15,
+            font_size=16,
             height=50,
-            font_name="KG True Colors",
+            font_name="Quadratum Unum",
         )
         self.current_label.fit_content()
         self.v_box_top.add(self.reaction_label)
@@ -380,6 +384,10 @@ class Game(arcade.View):
     def on_draw(self):
         """Called when this view should draw."""
         self.clear()
+
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH, SCREEN_HEIGHT,
+                                            GAME_BACKGROUND)
 
         for label in self.name_labels:
             arcade.draw_rectangle_filled(label.x + label.width / 2, label.y + label.height / 2,
@@ -553,5 +561,9 @@ class Decision(arcade.View):
     def on_draw(self):
         """Called when this view should draw."""
         self.clear()
+
+        arcade.draw_lrwh_rectangle_textured(0, 0,
+                                            SCREEN_WIDTH, SCREEN_HEIGHT,
+                                            GAME_BACKGROUND)
 
         self.manager.draw()
