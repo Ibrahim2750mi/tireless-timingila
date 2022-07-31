@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import webbrowser
 from functools import partial
 from random import randint
@@ -67,7 +68,7 @@ class Menu(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        play_button = arcade.gui.UIFlatButton(text="PLA<sub>Y</sub>", width=200, style=STYLE_WHITE)
+        play_button = arcade.gui.UIFlatButton(text="PLAY", width=200, style=STYLE_WHITE)
         play_button.on_click = self._on_click_play_button
         create_lobby_button = arcade.gui.UIFlatButton(text="Create Lobby", width=200, style=STYLE_WHITE)
         dummy_play_button = arcade.gui.UIFlatButton(text="Play", width=200, style=STYLE_RED)
@@ -197,11 +198,10 @@ class WaitingScreen(arcade.View):
 
     async def client(self, event):
         """Client side for the waiting screen."""
-        async with websockets.connect("ws://localhost:8002") as ws:
+        async with websockets.connect("ws://localhost:8001") as ws:
             try:
                 await ws.send(encode_json(event))
                 msg = await ws.recv()
-                print(msg)
                 event = decode_json(msg)
                 self.client_id = event.get("player", self.client_id)
                 self.room_key = event.get("room", self.room_key)
@@ -251,6 +251,9 @@ class Game(arcade.View):
         self.current_label: arcade.gui.UILabel = None
         self.reaction_label: arcade.gui.UILabel = None
 
+        self.player_names = None
+        self.option = None
+
         self.round = 1
         self.turn_index = 0
 
@@ -266,6 +269,10 @@ class Game(arcade.View):
         }
         asyncio.run(self.client(event))
 
+        time.sleep(0.5)
+
+    def get_turn(self):
+        """Will schedule to send a type "turn_status_pub" event to the server."""
         if self.turn_index != self.reaction['index']:
             event = {
                 "type": "turn_status_pub",
@@ -275,32 +282,31 @@ class Game(arcade.View):
             }
 
             self.lambda_client = lambda _: asyncio.run(self.client(event))
-            arcade.schedule(self.lambda_client, WAITING_SECOND // 3)
+            arcade.schedule(self.lambda_client, WAITING_SECOND)
 
     def setup(self):
         """Set up the game variables. Call to re-start the game."""
-        player_names = tuple(self.all_player_data.values())
+        self.player_names = tuple(self.all_player_data.values())
 
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
         self.h_box_top = arcade.gui.UIBoxLayout(vertical=False, space_between=200)
         # switch font color to red just to test if it's working
-        self.round_label = arcade.gui.UILabel(text=f"Round {self.round} of 5", text_color=FONT_COLOR_RED,
+        self.round_label = arcade.gui.UILabel(text=f"Round {self.round} of 3", text_color=FONT_COLOR_RED,
                                               font_name="Dilo World")
         self.h_box_top.add(self.round_label)
         # self.h_box_top.add(reaction_label)
 
         self.v_box_top = arcade.gui.UIBoxLayout(space_between=20)
-        print(self.reaction)
         self.reaction_label = arcade.gui.UILabel(
             text=f"Recipe is: {self.reaction['reaction']}",
-            width=300,
+            width=450,
             text_color=FONT_COLOR_RED,
             font_size=20,
             height=50,
         )
-
+        self.reaction_label.fit_content()
         v_box_h_box = arcade.gui.UIBoxLayout(vertical=False)
         for option in self.reaction['options']:
             mod_style = STYLE_WHITE
@@ -310,17 +316,18 @@ class Game(arcade.View):
             options_button.on_click = option_method
             v_box_h_box.add(options_button)
 
-        self.current_turn = arcade.gui.UILabel(text=f"{player_names[self.turn_index]}'s Turn",
+        self.current_turn = arcade.gui.UILabel(text=f"{self.player_names[self.turn_index]}'s Turn",
                                                font_name="Dilo World", text_color=FONT_COLOR_RED, width=250, height=30)
+        self.current_turn.fit_content()
 
         self.current_label = arcade.gui.UILabel(
             text=f"Current reaction is: {self.reaction['current_reaction']}",
             width=300,
             text_color=FONT_COLOR_RED,
-            font_size=20,
+            font_size=12,
             height=50,
         )
-
+        self.current_label.fit_content()
         self.v_box_top.add(self.reaction_label)
         self.v_box_top.add(v_box_h_box)
         self.v_box_top.add(self.current_turn)
@@ -328,7 +335,7 @@ class Game(arcade.View):
 
         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
 
-        for name in player_names:
+        for name in self.player_names:
             style = FONT_COLOR_WHITE
             if name == self.player_name:
                 style = FONT_COLOR_RED
@@ -373,34 +380,40 @@ class Game(arcade.View):
 
         self.manager.draw()
 
-    def _on_click_option(self, option, _: arcade.gui.UIOnClickEvent):
+    def _on_click_option(self, _: arcade.gui.UIOnClickEvent, option):
         if self.reaction["index"] != self.turn_index:
             return
+        self.option = option
         mod_reactants = self.reaction['reactants'].copy()
-        mod_reactants[mod_reactants.index(" ")] = " + "
-        mod_reactants[self.reaction['index']] = option
+        plus_index = mod_reactants.index(" ")
+        mod_reactants.remove(" ")
+        mod_reactants[self.reaction['index']] = self.option
+        mod_reactants.insert(plus_index, " + ")
+
+        self.reaction['current_reaction'] = ''.join(mod_reactants)
 
         self.turn_index += 1
 
         event = {
             "type": "select_option_pub",
-            "reaction": ''.join(mod_reactants),
+            "option": self.option,
             "player": self.player_id,
             "room": self.room_id,
             "turn": self.turn_index,
             "auto_disconnect": True,
+            "index": self.reaction['index'],
         }
 
         asyncio.run(self.client(event))
 
     async def client(self, event):
         """Client side for the waiting screen."""
-        async with websockets.connect("ws://localhost:8002") as ws:
+        async with websockets.connect("ws://localhost:8001") as ws:
             try:
                 await ws.send(encode_json(event))
                 msg = await ws.recv()
                 event_recv = decode_json(msg)
-
+                print(event_recv)
                 match event["type"]:
                     case "get_reaction_pub":
                         self.reaction['reaction_original'] = event_recv['reaction_original']
@@ -413,12 +426,41 @@ class Game(arcade.View):
                         if self.manager:
                             self.manager.clear()
                         self.setup()
+                        self.get_turn()
+                    case "select_option_pub":
+                        print(event_recv)
+                        event = {
+                            "type": "turn_status_pub",
+                            "player": self.player_id,
+                            "room": self.room_id,
+                            "auto_disconnect": True,
+                        }
+                        if event_recv['turn'] == 0:
+                            self.round += 1
+                            event = {
+                                "type": "get_reaction_pub",
+                                "player": self.player_id,
+                                "auto_disconnect": True,
+                                "room": self.room_id
+                            }
+                            self.turn_index = event_recv['turn']
+                            asyncio.run(self.client(event))
+                            return
+
+                        self.turn_index = event_recv['turn']
+                        self.current_turn.text = f"{self.player_names[event_recv['turn']]}'s Turn"
+                        self.current_turn.fit_content()
+
+                        self.current_label.text = f"Current reaction is: {self.reaction['current_reaction']}"
+                        self.current_label.fit_content()
+
+                        print(event)
+                        self.lambda_client = lambda _: asyncio.run(self.client(event))
+                        arcade.schedule(self.lambda_client, WAITING_SECOND)
                     case "turn_status_pub":
-                        if event_recv['turn'] == self.reaction['index']:
-                            arcade.unschedule(self.lambda_client)
-                            self.reaction["current_reaction"] = event_recv["reaction"]
                         # round end
-                        elif event_recv['turn'] < self.turn_index:
+                        if event_recv['turn'] < self.turn_index:
+                            print("round changed")
                             self.round += 1
 
                             event = {
@@ -427,13 +469,29 @@ class Game(arcade.View):
                                 "auto_disconnect": True,
                                 "room": self.room_id
                             }
+                            self.turn_index = event_recv['turn']
                             asyncio.run(self.client(event))
 
-                        self.turn_index = event_recv['turn']
-                        self.manager.clear()
-                        self.setup()
+                        elif event_recv['turn'] == self.reaction['index']:
+                            arcade.unschedule(self.lambda_client)
+                            self.reaction["current_reaction"] = event_recv["reaction"].replace("XX", self.option)
+                            self.turn_index = event_recv['turn']
+
+                            self.manager.clear()
+                            self.setup()
+
+                        elif event_recv['turn'] != self.reaction['index']:
+                            self.turn_index = event_recv['turn']
+                            self.reaction['current_reaction'] = event_recv['reaction']
+
+                            self.current_turn.text = f"{self.player_names[self.turn_index]}'s Turn"
+                            self.current_turn.fit_content()
+
+                            self.current_label.text = f"Current reaction is: {self.reaction['current_reaction']}"
+                            self.current_label.fit_content()
+
                     case _:
                         pass
 
             except Exception as e:
-                print(e)
+                raise e

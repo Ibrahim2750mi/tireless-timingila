@@ -72,7 +72,6 @@ def get_reaction() -> Reaction:
     reactions = reactions_cache
 
     if already_sent_reactions:
-        reactions = reactions[:]
         for reaction_type, reaction_list in reactions.items():
             for reaction in reaction_list:
                 if reaction in already_sent_reactions:
@@ -90,3 +89,5 @@ if __name__ == '__main__':
     #      json.dump(writeable, f, indent=2)
     r = get_reaction()
     print(r.reaction, r.reactants, r.html_reaction(), r.json(1))
+    r1 = get_reaction()
+    print(r1.reaction, r1.reactants, r1.html_reaction(), r1.json(0))

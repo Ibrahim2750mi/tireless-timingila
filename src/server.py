@@ -368,33 +368,46 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                     await websocket.send(encode_json(event))
                 case "get_reaction_pub":
                     room = public_rooms[event['room']]
+                    reaction = room.reaction
                     if not room.reaction:
                         reaction = get_reaction()
                         room.reaction = reaction
-                    else:
-                        reaction = room.reaction
+
                     omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
                     await websocket.send(encode_json(reaction.json(omit_number)))
                 case "turn_status_pub":
                     room = public_rooms[event['room']]
-
+                    omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
+                    reactants = room.reaction.reactants.copy()
+                    plus_index = reactants.index(" ")
+                    reactants.remove(" ")
+                    reactants[omit_number] = "XX"
+                    reactants.insert(plus_index, " + ")
                     event = {
                         "type": "turn_reply",
                         "turn": room.game_status['turn'],
-                        "reaction": room.reaction.reaction,
+                        "reaction": ''.join(reactants),
                     }
+                    print(event)
                     await websocket.send(encode_json(event))
                 case "select_option_pub":
                     room = public_rooms[event['room']]
-                    room.reaction.reaction = event["reaction"]
+                    reactants = room.reaction.reactants
+                    plus_index = reactants.index(" ")
+                    reactants.remove(" ")
+                    reactants[event['index']] = event['option']
+                    reactants.insert(plus_index, " ")
+
                     room.game_status['turn'] = event['turn']
-                    if room.game_status['turn'] == ROOM_SIZE - 1:
+                    if room.game_status['turn'] == ROOM_SIZE:
+                        print("called reset options")
                         room.reaction = None
                         room.game_status['turn'] = 0
                     event = {
-                        "type": "success"
+                        "type": "option_reply",
+                        'turn': room.game_status['turn'],
                     }
-
+                    print("room_status", room.game_status, room.reaction)
                     await websocket.send(encode_json(event))
     finally:
         if client_id in planned_disconnection:
@@ -421,7 +434,7 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
 
 async def main():
     """To get the server started at the uri "ws://localhost:8001"."""
-    async with websockets.serve(handler, "", 8002):
+    async with websockets.serve(handler, "", 8001):
         await asyncio.Future()
 
 
