@@ -11,6 +11,6 @@ class Window(arcade.Window):
 
         arcade.set_background_color(arcade.color.ANTI_FLASH_WHITE)
 
-        # self.music = arcade.Sound(str(ASSET_PATH / "music" / "game_bg.wav"))
-        # self.music_player = self.music.play(loop=True, volume=0.1)
-        # self.music_player.seek(90)
+        self.music = arcade.Sound(str(ASSET_PATH / "music" / "game_bg.wav"))
+        self.music_player = self.music.play(loop=True, volume=0.1)
+        self.music_player.seek(90)

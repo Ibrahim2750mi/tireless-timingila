@@ -396,7 +396,6 @@ class Game(arcade.View):
         if self.manager:
             self.manager.draw()
 
-
     def _on_click_option(self, _: arcade.gui.UIOnClickEvent, option):
         if self.reaction["index"] != self.turn_index:
             return
