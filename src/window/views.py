@@ -12,7 +12,8 @@ import websockets
 import websockets.exceptions
 
 from config import (
-    ASSET_PATH, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH, WAITING_SECOND
+    ASSET_PATH, MAX_ROUNDS, ROOM_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH,
+    WAITING_SECOND
 )
 
 nest_asyncio.apply()
@@ -259,6 +260,8 @@ class Game(arcade.View):
 
         self.lambda_client = None
 
+        self.rounds_won = 0
+
     def on_show_view(self):
         """Called when the current is switched to this view."""
         event = {
@@ -282,7 +285,7 @@ class Game(arcade.View):
             }
 
             self.lambda_client = lambda _: asyncio.run(self.client(event))
-            arcade.schedule(self.lambda_client, WAITING_SECOND)
+            arcade.schedule(self.lambda_client, WAITING_SECOND // 3)
 
     def setup(self):
         """Set up the game variables. Call to re-start the game."""
@@ -293,7 +296,7 @@ class Game(arcade.View):
 
         self.h_box_top = arcade.gui.UIBoxLayout(vertical=False, space_between=200)
         # switch font color to red just to test if it's working
-        self.round_label = arcade.gui.UILabel(text=f"Round {self.round} of 3", text_color=FONT_COLOR_RED,
+        self.round_label = arcade.gui.UILabel(text=f"Round {self.round} of {MAX_ROUNDS}", text_color=FONT_COLOR_RED,
                                               font_name="Dilo World")
         self.h_box_top.add(self.round_label)
         # self.h_box_top.add(reaction_label)
@@ -406,6 +409,20 @@ class Game(arcade.View):
 
         asyncio.run(self.client(event))
 
+    def round_check(self):
+        """Called to check how many rounds have been played and perform action according to it."""
+        self.option = None
+        if self.reaction['reaction_original'] == self.reaction['current_reaction']:
+            self.rounds_won += 1
+
+        if self.round - 1 == MAX_ROUNDS:
+            arcade.unschedule(self.lambda_client)
+            if self.rounds_won >= 2:
+                decision = Decision(self.main_window, "YOU WIN!")
+            else:
+                decision = Decision(self.main_window, "YOU LOSE")
+            self.main_window.show_view(decision)
+
     async def client(self, event):
         """Client side for the waiting screen."""
         async with websockets.connect("ws://localhost:8001") as ws:
@@ -437,6 +454,7 @@ class Game(arcade.View):
                         }
                         if event_recv['turn'] == 0:
                             self.round += 1
+                            self.round_check()
                             event = {
                                 "type": "get_reaction_pub",
                                 "player": self.player_id,
@@ -456,12 +474,12 @@ class Game(arcade.View):
 
                         print(event)
                         self.lambda_client = lambda _: asyncio.run(self.client(event))
-                        arcade.schedule(self.lambda_client, WAITING_SECOND)
+                        arcade.schedule(self.lambda_client, WAITING_SECOND // 3)
                     case "turn_status_pub":
                         # round end
                         if event_recv['turn'] < self.turn_index:
-                            print("round changed")
                             self.round += 1
+                            self.round_check()
 
                             event = {
                                 "type": "get_reaction_pub",
@@ -474,7 +492,7 @@ class Game(arcade.View):
 
                         elif event_recv['turn'] == self.reaction['index']:
                             arcade.unschedule(self.lambda_client)
-                            self.reaction["current_reaction"] = event_recv["reaction"].replace("XX", self.option)
+                            self.reaction["current_reaction"] = event_recv["reaction"]
                             self.turn_index = event_recv['turn']
 
                             self.manager.clear()
@@ -482,7 +500,8 @@ class Game(arcade.View):
 
                         elif event_recv['turn'] != self.reaction['index']:
                             self.turn_index = event_recv['turn']
-                            self.reaction['current_reaction'] = event_recv['reaction']
+                            self.reaction['current_reaction'] = event_recv['reaction'].replace("XX", self.option
+                                                                                               or "XX")
 
                             self.current_turn.text = f"{self.player_names[self.turn_index]}'s Turn"
                             self.current_turn.fit_content()
@@ -495,3 +514,42 @@ class Game(arcade.View):
 
             except Exception as e:
                 raise e
+
+
+class Decision(arcade.View):
+    """View to display the game decision."""
+
+    def __init__(self, main_window, decision):
+        super().__init__(main_window)
+
+        self.main_window = main_window
+        self.decision = decision
+
+        self.manager = None
+
+    def on_show_view(self):
+        """Called when the current is switched to this view."""
+        self.setup()
+
+    def setup(self):
+        """Set up the game variables. Call to re-start the game."""
+        self.manager = arcade.gui.UIManager()
+        self.manager.enable()
+
+        decision_label = arcade.gui.UILabel(text=self.decision, font_size=36, text_color=FONT_COLOR_RED,
+                                            font_name="Dilo World")
+        decision_label.fit_content()
+
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="center",
+                anchor_y="center",
+                child=decision_label
+            )
+        )
+
+    def on_draw(self):
+        """Called when this view should draw."""
+        self.clear()
+
+        self.manager.draw()

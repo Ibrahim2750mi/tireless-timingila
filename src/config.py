@@ -13,6 +13,7 @@ SCREEN_TITLE = "CHEMYSTERY"
 
 WAITING_SECOND = 3
 ROOM_SIZE = 2
+MAX_ROUNDS = 3
 
 if __name__ == '__main__':
     print(ASSET_PATH)
