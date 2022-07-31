@@ -4,22 +4,25 @@
       "HCl + NaOH",
       "H",
       "Cl",
+      " ",
       "Na",
       "OH"
     ],
     [
-      "H2SO4 + KOH",
-      "H2",
-      "SO4",
+      "H\u2082SO\u2084 + KOH",
+      "H\u2082",
+      "SO\u2084",
+      " ",
       "K",
       "OH"
     ],
     [
-      "NaNO2 + O2",
+      "NaNO\u2082 + O\u2082",
       "Na",
       "N",
-      "O2",
-      "O2"
+      "O\u2082",
+      " ",
+      "O\u2082"
     ]
   ],
   "extraction of elements from theirs ores or reaction intermediates": [
@@ -27,20 +30,23 @@
       "FeO + CO",
       "Fe",
       "O",
+      " ",
       "C",
       "O"
     ],
     [
-      "H2S + SO2",
-      "H2",
+      "H\u2082S + SO\u2082",
+      "H\u2082",
       "S",
+      " ",
       "S",
-      "O2"
+      "O\u2082"
     ],
     [
       "NiO + CO",
       "Ni",
       "O",
+      " ",
       "C",
       "O"
     ],
@@ -48,6 +54,7 @@
       "PbO + PbS",
       "Pb",
       "O",
+      " ",
       "Pb",
       "S"
     ]

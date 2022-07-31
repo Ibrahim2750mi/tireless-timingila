@@ -7,6 +7,7 @@ import secrets
 import websockets
 import websockets.legacy.server
 
+from chemistry import Reaction, get_reaction
 from config import ROOM_SIZE
 
 # Global varibales
@@ -55,8 +56,10 @@ class Room:
         self.room_key: str = room_key
         self.clients: dict[str, Client] = {}
         self.socket_list: list = []  # list of websocket object ( for brocasting )
-        self.game_status: dict = {"winner": None}
+        self.game_status: dict = {"winner": None, "started": False, "confirmed participants": [], "turn": 0}
         self.private: bool = False
+
+        self.reaction: Reaction = None
 
     def __len__(self):
         return len(self.clients)
@@ -273,12 +276,12 @@ async def join_public_game(websocket: websockets.legacy.server.WebSocketServerPr
                 for client in client_ids:
                     client_names.append(online_clients[client].name)
                 client_data = dict(zip(client_ids, client_names))
-                print(client_data)
-
+                current_room.game_status['started'] = True
                 event = {
                     "type": "reply_room_status",
                     "length": len(current_room),
                     "client_data": client_data,
+                    "started": True
                 }
                 await websocket.send(encode_json(event))
 
@@ -363,6 +366,46 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
                             "client_data": client_data,
                         }
                     await websocket.send(encode_json(event))
+                case "get_reaction_pub":
+                    room = public_rooms[event['room']]
+                    reaction = room.reaction
+                    if not room.reaction:
+                        reaction = get_reaction()
+                        room.reaction = reaction
+
+                    omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
+                    await websocket.send(encode_json(reaction.json(omit_number)))
+                case "turn_status_pub":
+                    room = public_rooms[event['room']]
+                    omit_number = tuple(public_rooms[event['room']].clients.keys()).index(client_id)
+                    reactants = room.reaction.reactants.copy()
+                    plus_index = reactants.index(" ")
+                    reactants.remove(" ")
+                    reactants[omit_number] = "XX"
+                    reactants.insert(plus_index, " + ")
+                    event = {
+                        "type": "turn_reply",
+                        "turn": room.game_status['turn'],
+                        "reaction": ''.join(reactants),
+                    }
+                    await websocket.send(encode_json(event))
+                case "select_option_pub":
+                    room = public_rooms[event['room']]
+                    reactants = room.reaction.reactants
+                    plus_index = reactants.index(" ")
+                    reactants.remove(" ")
+                    reactants[event['index']] = event['option']
+                    reactants.insert(plus_index, " ")
+
+                    room.game_status['turn'] = event['turn']
+                    if room.game_status['turn'] == ROOM_SIZE:
+                        room.reaction = None
+                        room.game_status['turn'] = 0
+                    event = {
+                        "type": "option_reply",
+                        'turn': room.game_status['turn'],
+                    }
+                    await websocket.send(encode_json(event))
     finally:
         if client_id in planned_disconnection:
             planned_disconnection.remove(client_id)
@@ -388,7 +431,7 @@ async def handler(websocket: websockets.legacy.server.WebSocketServerProtocol):
 
 async def main():
     """To get the server started at the uri "ws://localhost:8001"."""
-    async with websockets.serve(handler, "", 8002):
+    async with websockets.serve(handler, "", 8001):
         await asyncio.Future()
 
 
