@@ -22,6 +22,27 @@
 
 Chemystery is a turn-based co-op game where chemists must team up to brew a concoction for a deathly-ill patient. Careful! You might end up sending the patient to heaven!
 
+## Getting Started
+
+1. Clone the repository
+3. Run `poetry update` and `poetry install`
+
+### Running the Server
+
+1. Navigate to the project directory and run the following:  
+`python src/server.py`
+
+### Running the Game
+
+1. Navigate to the project directory and run the following:  
+`python src/main.py`
+
+## How To Play
+
+As a player, you can either choose to join a random room or create a room for your party.  
+After entering a room, you are provided with an equation and a few elements.  
+When it is your turn, try to pick an element that best fits the given equation in order to save the patient.
+
 ## Our Team
 
 * [Ibrahim2750mi](https://github.com/Ibrahim2750mi)
